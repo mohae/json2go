@@ -14,7 +14,7 @@ var basic = []byte(`{
 	"foo_bar": "frood"
 }`)
 var expectedBasicFields = "\tBar\tstring `json:\"bar\"`\n\tBaz\tfloat64 `json:\"baz\"`\n\tBiz\tint `json:\"biz\"`\n\tFoo\tstring `json:\"foo\"`\n\tFooBar\tstring `json:\"foo_bar\"`\n"
-var expectedBasicStruct = "type Basic struct {\n\tBar\tstring `json:\"bar\"`\n\tBaz\tfloat64 `json:\"baz\"`\n\tBiz\tint `json:\"biz\"`\n\tFoo\tstring `json:\"foo\"`\n\tFooBar\tstring `json:\"foo_bar\"`\n}"
+var expectedBasicStruct = "type Basic struct {\n\tBar\tstring `json:\"bar\"`\n\tBaz\tfloat64 `json:\"baz\"`\n\tBiz\tint `json:\"biz\"`\n\tFoo\tstring `json:\"foo\"`\n\tFooBar\tstring `json:\"foo_bar\"`\n}\n"
 
 func TestBasicStruct(t *testing.T) {
  	var tst interface{}
@@ -31,6 +31,11 @@ func TestBasicStruct(t *testing.T) {
 	}
 	if buff.String() != expectedBasicFields {
 		t.Errorf("expected:\n%q, got:\n%q", expectedBasicFields, buff.String())
+	}
+	buff.Reset()
+	s := structDef("Basic", tst)
+	if s != expectedBasicStruct {
+		t.Errorf("expected %q got %q", expectedBasicStruct, s)
 	}
 }
 
@@ -60,7 +65,7 @@ var intermediate = []byte(`{
 	"date": "Fri Jan 23 13:02:46 +0000 2015"
 }`)
 var expectedIntermediateFields = "\tBools\t[]bool `json:\"bools\"`\n\tBot\tbool `json:\"bot\"`\n\tDate\tstring `json:\"date\"`\n\tFloats\t[]float64 `json:\"floats\"`\n\tId\tint `json:\"id\"`\n\tInts\t[]int `json:\"ints\"`\n\tName\tstring `json:\"name\"`\n\tQuotes\t[]string `json:\"quotes\"`\n"
-var expectedIntermediateStruct = "type Intermediate strict {\n\tBools\t[]bool `json:\"bools\"`\n\tBot\tbool `json:\"bot\"`\n\tDate\tstring `json:\"date\"`\n\tFloats\t[]float64 `json:\"floats\"\n\tId\tint `json:\"id\"`\n\tInts\t[]int `json:\"ints\"`\n\tName\tstring `json:\"name\"`\n\tQuotes\t[]string `json:\"quotes\"`\n}"
+var expectedIntermediateStruct = "type Intermediate struct {\n\tBools\t[]bool `json:\"bools\"`\n\tBot\tbool `json:\"bot\"`\n\tDate\tstring `json:\"date\"`\n\tFloats\t[]float64 `json:\"floats\"`\n\tId\tint `json:\"id\"`\n\tInts\t[]int `json:\"ints\"`\n\tName\tstring `json:\"name\"`\n\tQuotes\t[]string `json:\"quotes\"`\n}\n"
 
 func TestIntermediateStruct(t *testing.T) {
  	var tst interface{}
@@ -77,5 +82,10 @@ func TestIntermediateStruct(t *testing.T) {
 	}
 	if buff.String() != expectedIntermediateFields {
 		t.Errorf("expected:\n%q, got:\n%q", expectedIntermediateFields, buff.String())
+	}
+	buff.Reset()
+	s := structDef("Intermediate", tst)
+	if s != expectedIntermediateStruct {
+		t.Errorf("expected %q got %q", expectedIntermediateStruct, s)
 	}
 }

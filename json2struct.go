@@ -17,9 +17,16 @@ func (sv stringValues) Swap(i, j int)      { sv[i], sv[j] = sv[j], sv[i] }
 func (sv stringValues) Less(i, j int) bool { return sv.get(i) < sv.get(j) }
 func (sv stringValues) get(i int) string   { return sv[i].String() }
 
-// Gen accepts an interface and
-//func Gen
-
+// structDef creates a struct definition of type <em>name</em> from the
+// marshaled JSON and returns it as a formatted string.
+func structDef(name string, data interface{}) string {
+	var buff bytes.Buffer
+	err := gen(data, &buff)
+	if err != nil {
+		return ""
+	}
+	return fmt.Sprintf("type %s struct {\n%s}\n", name, buff.String())
+}
 // gen generates a byte representation of the interface{} fields, which is
 // assumed to be the result of a json.Unmarshal,
 func gen(data interface{}, buff *bytes.Buffer) error {
