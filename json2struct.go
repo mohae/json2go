@@ -23,7 +23,6 @@ func (sv stringValues) get(i int) string   { return sv[i].String() }
 // gen generates a byte representation of the interface{} fields, which is
 // assumed to be the result of a json.Unmarshal,
 func gen(data interface{}, buff *bytes.Buffer) error {
-	fmt.Printf("%#v\n", data)
 	// TODO should pointers to interface be supported or generate an error?
 	var datum reflect.Value
 	switch data.(type) {
@@ -49,22 +48,33 @@ func toStruct(datum reflect.Value, buff *bytes.Buffer) error {
 		}
 		val := datum.MapIndex(key)
 		typ := getValueKind(val)
-		buff.WriteString(typ.String())
+		buff.WriteString(typ)
 		buff.WriteString(fmt.Sprintf(" `json:%q`", tag))
 		buff.WriteString("\n")
 	}
 	return nil
 }
 
-func getValueKind(val reflect.Value) reflect.Kind {
-	if val.Elem().Type().Kind() == reflect.Float64 {
+func getValueKind(val reflect.Value) string {
+	switch val.Elem().Type().Kind() {
+	case reflect.Float64:
 		v := val.Elem().Float()
 		if v == float64(int64(v)) {
-			return reflect.Int
+			return reflect.Int.String()
 		}
-		return reflect.Float64
+		return reflect.Float64.String()
+	case reflect.Slice:
+		v := val.Elem().Index(0).Elem()
+		if v.Type().Kind() == reflect.Float64 {
+			vv := v.Float()
+			if vv == float64(int64(vv)) {
+				return fmt.Sprintf("[]%s", reflect.Int.String())
+			}
+			return fmt.Sprintf("[]%s", reflect.Float64.String())
+		}
+		return fmt.Sprintf("[]%s", v.Type().Kind().String())
 	}
-	return val.Elem().Type().Kind()
+	return val.Elem().Type().Kind().String()
 }
 
 func getFieldName(key reflect.Value) (name, tag string) {
