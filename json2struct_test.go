@@ -1,6 +1,9 @@
 package json2struct
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -11,15 +14,15 @@ var basic = []byte(`{
 	"baz": 42.1,
 	"foo_bar": "frood"
 }`)
-var expectedBasicStruct = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
+var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
 
 func TestBasicStruct(t *testing.T) {
 	def, err := Gen("Basic", basic)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedBasicStruct {
-		t.Errorf("expected %q got %q", expectedBasicStruct, string(def))
+	if string(def) != expectedBasic {
+		t.Errorf("expected %q got %q", expectedBasic, string(def))
 	}
 }
 
@@ -48,15 +51,15 @@ var intermediate = []byte(`{
 	],
 	"date": "Fri Jan 23 13:02:46 +0000 2015"
 }`)
-var expectedIntermediateStruct = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tId int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n"
+var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tId int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n"
 
 func TestIntermediateStruct(t *testing.T) {
 	def, err := Gen("Intermediate", intermediate)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedIntermediateStruct {
-		t.Errorf("expected %q got %q", expectedIntermediateStruct, string(def))
+	if string(def) != expectedIntermediate {
+		t.Errorf("expected %q got %q", expectedIntermediate, string(def))
 	}
 }
 
@@ -99,5 +102,42 @@ func TestWidget(t *testing.T) {
 	}
 	if string(s) != expectedWidget {
 		t.Errorf("expected:\n%q, got:\n%q", expectedWidget, string(s))
+	}
+}
+
+func TestTransmogrify(t *testing.T) {
+	tests := []struct{
+		pkg string
+		importJSON bool
+		expected string
+	}{
+		{"", false, fmt.Sprintf("package main\n\n%s", expectedBasic)},
+		{"test", false, fmt.Sprintf("package test\n\n%s", expectedBasic)},
+		{"", true, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
+		{"test", true, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
+	}
+
+	var b bytes.Buffer
+	for i, test := range tests {
+		// create reader
+		r := bytes.NewReader(basic)
+		// create Writer
+		w := bufio.NewWriter(&b)
+
+		calvin := NewTransmogrifier("Basic", r, w)
+		if test.pkg != "" {
+			calvin.SetPkg(test.pkg)
+		}
+		calvin.SetImportJSON(test.importJSON)
+		err := calvin.Gen()
+		if err != nil {
+			t.Errorf("%d: unexpected error %q", i, err)
+			continue
+		}
+		w.Flush()
+		if b.String() != test.expected {
+			t.Errorf("%d: expected %q, got %q", i, test.expected, b.String())
+		}
+		b.Reset()
 	}
 }
