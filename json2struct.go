@@ -189,6 +189,11 @@ func defineStruct(q *queue.Queue, result chan []byte, wg *sync.WaitGroup) {
 }
 
 func getValueKind(val reflect.Value) string {
+	// if the value is nil, return interface{}; what type a nil should be
+	// cannot be accurately determined.
+	if val.IsNil() {
+		return "interface{}"
+	}
 	switch val.Elem().Type().Kind() {
 	case reflect.Float64:
 		v := val.Elem().Float()
@@ -206,10 +211,6 @@ func getValueKind(val reflect.Value) string {
 			return fmt.Sprintf("[]%s", reflect.Float64.String())
 		}
 		return fmt.Sprintf("[]%s", v.Type().Kind().String())
-	case reflect.Struct:
-		fmt.Println("struct not handled")
-		return ""
-
 	}
 	return val.Elem().Type().Kind().String()
 }

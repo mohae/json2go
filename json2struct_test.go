@@ -16,6 +16,7 @@ var basic = []byte(`{
 }`)
 var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
 
+/*
 func TestBasicStruct(t *testing.T) {
 	def, err := Gen("Basic", basic)
 	if err != nil {
@@ -102,6 +103,27 @@ func TestWidget(t *testing.T) {
 	}
 	if string(s) != expectedWidget {
 		t.Errorf("expected:\n%q, got:\n%q", expectedWidget, string(s))
+	}
+}
+*/
+
+var wnull = []byte(`{
+	"foo": "fooer",
+	"bar": null,
+	"biz": 1,
+	"baz": 42.1,
+	"foo_bar": "frood"
+}`)
+
+var expectedWNull = "type WNull struct {\n\tBar interface{} `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
+
+func TestWNull(t *testing.T) {
+	def, err := Gen("WNull", wnull)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedWNull {
+		t.Errorf("expected %q got %q", expectedWNull, string(def))
 	}
 }
 
