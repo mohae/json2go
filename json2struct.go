@@ -22,8 +22,7 @@ func (sv stringValues) Swap(i, j int)      { sv[i], sv[j] = sv[j], sv[i] }
 func (sv stringValues) Less(i, j int) bool { return sv.get(i) < sv.get(j) }
 func (sv stringValues) get(i int) string   { return sv[i].String() }
 
-// A transmogrifier turns one thing into something else: this turns JSON into
-// Go structs.
+// Transmogrifier turns JSON into Go struct definitions.
 type Transmogrifier struct {
 	r         io.Reader
 	w        io.Writer
@@ -33,22 +32,30 @@ type Transmogrifier struct {
 	writeJSON  bool
 }
 
+// NewTransmogrifier returns a new transmogrifier that reads from r and writes
+// to w.
 func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 	return &Transmogrifier{r: r, w: w, name: name, pkg: "main"}
 }
 
+// SetPkg set's the package name to s.
 func (t *Transmogrifier) SetPkg(s string) {
 	t.pkg = s
 }
 
+// SetImportJSON set's whether or not an import statement for encoding/json
+// should be added to the output.
 func (t *Transmogrifier) SetImportJSON(b bool) {
 	t.importJSON = b
 }
 
+// SetWriteJSON set's whether or not the source json used should be written
+// out to a file.
 func (t *Transmogrifier) SetWriteJSON(b bool) {
 	t.writeJSON = b
 }
 
+// Gen generates the struct definitions and outputs it to W.
 func (t *Transmogrifier) Gen() error {
 	var buff bytes.Buffer
 	b := make([]byte, 1024)
