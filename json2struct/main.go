@@ -21,10 +21,10 @@ import (
 )
 
 var (
-	pkg string
-	input string
-	output string
-	writeJSON bool
+	pkg        string
+	input      string
+	output     string
+	writeJSON  bool
 	importJSON bool
 )
 

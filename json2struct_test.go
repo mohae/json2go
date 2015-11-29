@@ -128,10 +128,10 @@ func TestWNull(t *testing.T) {
 }
 
 func TestTransmogrify(t *testing.T) {
-	tests := []struct{
-		pkg string
+	tests := []struct {
+		pkg        string
 		importJSON bool
-		expected string
+		expected   string
 	}{
 		{"", false, fmt.Sprintf("package main\n\n%s", expectedBasic)},
 		{"test", false, fmt.Sprintf("package test\n\n%s", expectedBasic)},

@@ -25,12 +25,12 @@ func (sv stringValues) get(i int) string   { return sv[i].String() }
 // A transmogrifier turns one thing into something else: this turns JSON into
 // Go structs.
 type Transmogrifier struct {
-	in io.Reader
-	out io.Writer
-	name string
-	pkg string
+	in         io.Reader
+	out        io.Writer
+	name       string
+	pkg        string
 	importJSON bool
-	writeJSON bool
+	writeJSON  bool
 }
 
 func NewTransmogrifier(name string, in io.Reader, out io.Writer) *Transmogrifier {
@@ -102,7 +102,7 @@ func (t *Transmogrifier) Gen() error {
 
 type structDef struct {
 	name string
-	val reflect.Value
+	val  reflect.Value
 	buff bytes.Buffer
 }
 
