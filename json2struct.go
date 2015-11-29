@@ -25,16 +25,16 @@ func (sv stringValues) get(i int) string   { return sv[i].String() }
 // A transmogrifier turns one thing into something else: this turns JSON into
 // Go structs.
 type Transmogrifier struct {
-	in         io.Reader
-	out        io.Writer
+	r         io.Reader
+	w        io.Writer
 	name       string
 	pkg        string
 	importJSON bool
 	writeJSON  bool
 }
 
-func NewTransmogrifier(name string, in io.Reader, out io.Writer) *Transmogrifier {
-	return &Transmogrifier{in: in, out: out, name: name, pkg: "main"}
+func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
+	return &Transmogrifier{r: r, w: w, name: name, pkg: "main"}
 }
 
 func (t *Transmogrifier) SetPkg(s string) {
@@ -53,7 +53,7 @@ func (t *Transmogrifier) Gen() error {
 	var buff bytes.Buffer
 	b := make([]byte, 1024)
 	for {
-		n, err := t.in.Read(b)
+		n, err := t.r.Read(b)
 		if err != nil && err != io.EOF {
 			return err
 		}
@@ -72,7 +72,7 @@ func (t *Transmogrifier) Gen() error {
 	if err != nil {
 		return err
 	}
-	n, err := t.out.Write([]byte(fmt.Sprintf("package %s\n\n", t.pkg)))
+	n, err := t.w.Write([]byte(fmt.Sprintf("package %s\n\n", t.pkg)))
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (t *Transmogrifier) Gen() error {
 	}
 
 	if t.importJSON {
-		n, err = t.out.Write([]byte("import (\n\t\"encoding/json\"\n)\n\n"))
+		n, err = t.w.Write([]byte("import (\n\t\"encoding/json\"\n)\n\n"))
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (t *Transmogrifier) Gen() error {
 		}
 	}
 
-	n, err = t.out.Write(res)
+	n, err = t.w.Write(res)
 	if err != nil {
 		return err
 	}
