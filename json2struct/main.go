@@ -9,10 +9,7 @@
 // Optionally, the source json can be written out to a file.  This file's
 // name will be the same as the Go source file's name, ending in '.json'.
 //
-// other options:
-//	read from file
-//	write to stdout
-//	write source json to file
+// Errors are written to stderr
 package main
 
 import (
@@ -28,26 +25,35 @@ var (
 	input string
 	output string
 	writeJSON bool
+	importJSON bool
 )
 
 func init() {
-	flag.StringVar(&pkg, "pkg", "main", "the name of the package")
-	flag.StringVar(&pkg, "p", "main", "the short flag for -pkg")
+	flag.StringVar(&pkg, "pkg", "", "the name of the package")
+	flag.StringVar(&pkg, "p", "", "the short flag for -pkg")
 	flag.StringVar(&input, "input", "stdin", "the path to the input file; if not specified stdin is used")
 	flag.StringVar(&input, "i", "stdin", "the short flag for -input")
 	flag.StringVar(&output, "output", "stdout", "path to the output file; if not specified stdout is used")
 	flag.StringVar(&output, "o", "stdout", "the short flag for -output")
 	flag.BoolVar(&writeJSON, "writejson", false, "write the source JSON to file; if the output destination is stdout, this flag will be ignored")
 	flag.BoolVar(&writeJSON, "w", false, "the short flag for -writejson")
+	flag.BoolVar(&importJSON, "import", false, "add import statement for encoding/json")
+	flag.BoolVar(&importJSON, "m", false, "the shortflat for -import")
 }
+
 func main() {
 	os.Exit(realMain())
 }
 
 func realMain() int {
-	var in, out, jsonOut io.File
 	flag.Parse()
-
+	args := flag.Args()
+	if len(args) == 0 {
+		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided")
+		return 1
+	}
+	var in, out *os.File
+	var err error
 	//var in io.Reader
 	//var out io.Writer
 	in = os.Stdin
@@ -55,7 +61,7 @@ func realMain() int {
 	if input != "stdin" {
 		in, err = os.Open(input)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
 	}
@@ -63,9 +69,9 @@ func realMain() int {
 	out = os.Stdout
 	if output != "stdout" {
 		//
-		out = os.OpenFile(output, os.O_CREATE|os.O_RDWR|os.O_TRUNCATE, 0544)
+		out, err = os.OpenFile(output, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0544)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			return 1
 		}
 	}
@@ -80,10 +86,15 @@ func realMain() int {
 
 	//}
 
-	t := struct2csv.NewTranscoder(in, out)
-	err := t.Gen()
+	t := json2struct.NewTransmogrifier(args[0], in, out)
+	t.SetWriteJSON(writeJSON)
+	t.SetImportJSON(importJSON)
+	if pkg != "" {
+		t.SetPkg(pkg)
+	}
+	err = t.Gen()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintln(os.Stderr, err)
 		return 1
 	}
 	return 0
