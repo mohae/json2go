@@ -23,6 +23,7 @@ import (
 )
 
 var (
+	name string
 	pkg        string
 	input      string
 	output     string
@@ -31,6 +32,8 @@ var (
 )
 
 func init() {
+	flag.StringVar(&name, "name", "", "the name of the struct")
+	flag.StringVar(&name, "n", "", "the short flag for -name")
 	flag.StringVar(&pkg, "pkg", "", "the name of the package")
 	flag.StringVar(&pkg, "p", "", "the short flag for -pkg")
 	flag.StringVar(&input, "input", "stdin", "the path to the input file; if not specified stdin is used")
@@ -49,8 +52,7 @@ func main() {
 
 func realMain() int {
 	flag.Parse()
-	args := flag.Args()
-	if len(args) == 0 {
+	if name == "" {
 		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided")
 		return 1
 	}
@@ -96,7 +98,7 @@ func realMain() int {
 
 	//}
 
-	t := json2struct.NewTransmogrifier(args[0], in, out)
+	t := json2struct.NewTransmogrifier(name, in, out)
 	if jsn != nil {
 		t.SetWriteJSON(writeJSON)
 		t.SetJSONWriter(jsn)
