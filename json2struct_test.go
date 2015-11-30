@@ -163,8 +163,8 @@ func TestTransmogrify(t *testing.T) {
 }
 
 func TestNumToAlpha(t *testing.T) {
-	tests := []struct{
-		char rune
+	tests := []struct {
+		char     rune
 		expected string
 	}{
 		{'0', "Zero"},
@@ -187,8 +187,8 @@ func TestNumToAlpha(t *testing.T) {
 }
 
 func TestShouldDiscard(t *testing.T) {
-	tests := []struct{
-		char rune
+	tests := []struct {
+		char     rune
 		expected bool
 	}{
 		{'~', true},
@@ -221,8 +221,8 @@ func TestShouldDiscard(t *testing.T) {
 }
 
 func TestCleanFieldName(t *testing.T) {
-	tests := []struct{
-		name string
+	tests := []struct {
+		name     string
 		expected string
 	}{
 		{"abdcn", "Abdcn"},

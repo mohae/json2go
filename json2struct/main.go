@@ -16,6 +16,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/mohae/json2struct"
 )
@@ -52,7 +54,7 @@ func realMain() int {
 		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided")
 		return 1
 	}
-	var in, out *os.File
+	var in, out, jsn *os.File
 	var err error
 	//var in io.Reader
 	//var out io.Writer
@@ -69,10 +71,18 @@ func realMain() int {
 	out = os.Stdout
 	if output != "stdout" {
 		//
-		out, err = os.OpenFile(output, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0544)
+		out, err = os.OpenFile(output, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			return 1
+		}
+		if writeJSON {
+			jsn, err = os.OpenFile(fmt.Sprintf("%s.json", strings.TrimSuffix(output, path.Ext(output))), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 1
+			}
+			defer jsn.Close()
 		}
 	}
 	defer out.Close()
@@ -87,7 +97,10 @@ func realMain() int {
 	//}
 
 	t := json2struct.NewTransmogrifier(args[0], in, out)
-	t.SetWriteJSON(writeJSON)
+	if jsn != nil {
+		t.SetWriteJSON(writeJSON)
+		t.SetJSONWriter(jsn)
+	}
 	t.SetImportJSON(importJSON)
 	if pkg != "" {
 		t.SetPkg(pkg)

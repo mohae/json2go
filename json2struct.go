@@ -26,8 +26,9 @@ func (sv stringValues) get(i int) string   { return sv[i].String() }
 
 // Transmogrifier turns JSON into Go struct definitions.
 type Transmogrifier struct {
-	r         io.Reader
-	w        io.Writer
+	r          io.Reader
+	w          io.Writer
+	jw         io.Writer
 	name       string
 	pkg        string
 	importJSON bool
@@ -49,6 +50,12 @@ func (t *Transmogrifier) SetPkg(s string) {
 // should be added to the output.
 func (t *Transmogrifier) SetImportJSON(b bool) {
 	t.importJSON = b
+}
+
+// SetJSONWriter set's the writer to which the original json is written to,
+// This is most useful when getting the JSON from stdin.
+func (t *Transmogrifier) SetJSONWriter(w io.Writer) {
+	t.jw = w
 }
 
 // SetWriteJSON set's whether or not the source json used should be written
@@ -74,6 +81,15 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != m {
+			return fmt.Errorf("short write")
+		}
+	}
+	if t.writeJSON {
+		n, err := t.jw.Write(buff.Bytes())
+		if err != nil {
+			return err
+		}
+		if n != buff.Len() {
 			return fmt.Errorf("short write")
 		}
 	}
@@ -244,7 +260,7 @@ func getFieldName(key reflect.Value) (name, tag string) {
 func cleanFieldName(s string) string {
 	var first string
 	var pos int
-	for i, w := 0, 0; i < len(s); i += w{
+	for i, w := 0, 0; i < len(s); i += w {
 		v, width := utf8.DecodeRuneInString(s[i:])
 		w = width
 		if shouldDiscard(v) {
