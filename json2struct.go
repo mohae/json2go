@@ -222,7 +222,6 @@ func defineStruct(q *queue.Queue, result chan []byte, wg *sync.WaitGroup) {
 			// a slicemap is a signal that it is a []T which means pluralize
 			// the field name and generate the embedded sturct
 			if typ == "slicemap" {
-				fmt.Println(val.Elem().Index(0).Elem())
 				tmp := newStructDef(k, val.Elem().Index(0).Elem())
 				q.Enqueue(tmp)
 				s.buff.WriteString(fmt.Sprintf("\t%ss []%s `json:%q`\n", k, k, tag))

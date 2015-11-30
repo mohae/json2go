@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	name string
+	name       string
 	pkg        string
 	input      string
 	output     string
