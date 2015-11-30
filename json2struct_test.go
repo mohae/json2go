@@ -16,7 +16,6 @@ var basic = []byte(`{
 }`)
 var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
 
-/*
 func TestBasicStruct(t *testing.T) {
 	def, err := Gen("Basic", basic)
 	if err != nil {
@@ -105,7 +104,6 @@ func TestWidget(t *testing.T) {
 		t.Errorf("expected:\n%q, got:\n%q", expectedWidget, string(s))
 	}
 }
-*/
 
 var wnull = []byte(`{
 	"foo": "fooer",
