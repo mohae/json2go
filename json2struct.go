@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/mohae/firkin/queue"
 )
@@ -222,11 +224,74 @@ func getValueKind(val reflect.Value) string {
 	return val.Elem().Type().Kind().String()
 }
 
+// getFieldName: get the field name and tag for the key.  Underscores are
+// removed and values separated by underscores have their first rune
+// uppercased, when applicable.  The first part of the FieldName is cleaned to
+// ensure that it starts with a valid character and is uppercased.
 func getFieldName(key reflect.Value) (name, tag string) {
 	tag = key.String()
 	vals := strings.Split(tag, "_")
-	for _, v := range vals {
+	for i, v := range vals {
+		if i == 0 {
+			name = cleanFieldName(v)
+			continue
+		}
 		name = fmt.Sprintf("%s%s", name, strings.Title(v))
 	}
 	return name, tag
+}
+
+func cleanFieldName(s string) string {
+	var first string
+	var pos int
+	for i, w := 0, 0; i < len(s); i += w{
+		v, width := utf8.DecodeRuneInString(s[i:])
+		w = width
+		if shouldDiscard(v) {
+			continue
+		}
+		pos = i + w
+		first = numToAlpha(v)
+		if first != "" {
+			break
+		}
+		first = string(unicode.ToUpper(v))
+		break
+	}
+	return fmt.Sprintf("%s%s", first, s[pos:])
+
+}
+
+func shouldDiscard(r rune) bool {
+	switch r {
+	case '~', '!', '@', '#', '$', '%', '^', '&', '*', '-', '_', '=', '+', ':', '.', '<', '>':
+		return true
+	}
+	return false
+}
+
+func numToAlpha(r rune) string {
+	switch r {
+	case '0':
+		return "Zero"
+	case '1':
+		return "One"
+	case '2':
+		return "Two"
+	case '3':
+		return "Three"
+	case '4':
+		return "Four"
+	case '5':
+		return "Five"
+	case '6':
+		return "Six"
+	case '7':
+		return "Seven"
+	case '8':
+		return "Eight"
+	case '9':
+		return "Nine"
+	}
+	return ""
 }

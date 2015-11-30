@@ -161,3 +161,82 @@ func TestTransmogrify(t *testing.T) {
 		b.Reset()
 	}
 }
+
+func TestNumToAlpha(t *testing.T) {
+	tests := []struct{
+		char rune
+		expected string
+	}{
+		{'0', "Zero"},
+		{'1', "One"},
+		{'2', "Two"},
+		{'3', "Three"},
+		{'4', "Four"},
+		{'5', "Five"},
+		{'6', "Six"},
+		{'7', "Seven"},
+		{'8', "Eight"},
+		{'9', "Nine"},
+	}
+	for i, test := range tests {
+		s := numToAlpha(test.char)
+		if s != test.expected {
+			t.Errorf("%d: expected %s got %s", i, test.expected, s)
+		}
+	}
+}
+
+func TestShouldDiscard(t *testing.T) {
+	tests := []struct{
+		char rune
+		expected bool
+	}{
+		{'~', true},
+		{'!', true},
+		{'@', true},
+		{'#', true},
+		{'$', true},
+		{'%', true},
+		{'^', true},
+		{'&', true},
+		{'-', true},
+		{'_', true},
+		{'*', true},
+		{'=', true},
+		{'+', true},
+		{':', true},
+		{'.', true},
+		{'<', true},
+		{'>', true},
+		{'a', false},
+		{'z', false},
+		{'你', false},
+	}
+	for i, test := range tests {
+		b := shouldDiscard(test.char)
+		if b != test.expected {
+			t.Errorf("%d: expected %t, got %t", i, test.expected, b)
+		}
+	}
+}
+
+func TestCleanFieldName(t *testing.T) {
+	tests := []struct{
+		name string
+		expected string
+	}{
+		{"abdcn", "Abdcn"},
+		{">asb", "Asb"},
+		{"_asdf", "Asdf"},
+		{"<>field", "Field"},
+		{"日本語a", "日本語a"},
+		{"бsdf", "Бsdf"},
+		{"6dsaf", "Sixdsaf"},
+	}
+	for i, test := range tests {
+		s := cleanFieldName(test.name)
+		if s != test.expected {
+			t.Errorf("%d: expected %q, got %q", i, test.expected, s)
+		}
+	}
+}
