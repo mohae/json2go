@@ -167,6 +167,14 @@ func Gen(name string, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	switch d := datum.(type) {
+	case map[string]interface{}:
+		fmt.Println("mapstringinterface", d)
+	case []map[string]interface{}:
+		fmt.Println("[]mapstringinterface", d)
+	case []interface{}:
+		datum = d[0]
+	}
 
 	var buff bytes.Buffer
 	var wg sync.WaitGroup

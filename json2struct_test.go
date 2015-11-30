@@ -1,12 +1,12 @@
 package json2struct
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
+	_"bufio"
+	_"bytes"
+	_"fmt"
 	"testing"
 )
-
+/*
 var basic = []byte(`{
 	"foo": "fooer",
 	"bar": "bars",
@@ -125,6 +125,27 @@ func TestWNull(t *testing.T) {
 		t.Errorf("expected %q got %q", expectedWNull, string(def))
 	}
 }
+*/
+var basicArr = []byte(`[{
+	"foo": "fooer",
+	"bar": "bars",
+	"biz": 1,
+	"baz": 42.1,
+	"foo_bar": "frood"
+}]`)
+
+var expectedBasicArr = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+
+
+func TestBasicArr(t *testing.T) {
+	def, err := Gen("Basic", basicArr)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedBasicArr {
+		t.Errorf("expected %q got %q", expectedBasicArr, string(def))
+	}
+}
 
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
@@ -241,3 +262,4 @@ func TestCleanFieldName(t *testing.T) {
 		}
 	}
 }
+*/
