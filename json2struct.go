@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/format"
 	"io"
 	"reflect"
 	"sort"
@@ -81,7 +82,7 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != m {
-			return fmt.Errorf("short write")
+			return fmt.Errorf("short write json buffer")
 		}
 	}
 	if t.writeJSON {
@@ -90,37 +91,45 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != buff.Len() {
-			return fmt.Errorf("short write")
+			return fmt.Errorf("short write json file")
 		}
 	}
 	res, err := Gen(t.name, buff.Bytes())
 	if err != nil {
 		return err
 	}
-	n, err := t.w.Write([]byte(fmt.Sprintf("package %s\n\n", t.pkg)))
+	buff.Reset()
+	n, err := buff.WriteString(fmt.Sprintf("package %s\n\n", t.pkg))
 	if err != nil {
 		return err
 	}
 	if n != (10 + len(t.pkg)) {
-		return fmt.Errorf("short write")
+		return fmt.Errorf("short write package")
 	}
 
 	if t.importJSON {
-		n, err = t.w.Write([]byte("import (\n\t\"encoding/json\"\n)\n\n"))
+		n, err = buff.WriteString("import (\n\t\"encoding/json\"\n)\n\n")
 		if err != nil {
 			return err
 		}
 		if n != 29 {
-			return fmt.Errorf("short write")
+			return fmt.Errorf("short write import")
 		}
 	}
-
-	n, err = t.w.Write(res)
+	n, err = buff.Write(res)
 	if err != nil {
 		return err
 	}
 	if n != len(res) {
-		return fmt.Errorf("short write")
+		return fmt.Errorf("short write generated structs")
+	}
+	fmtd, err := format.Source(buff.Bytes())
+	n, err = t.w.Write(fmtd)
+	if err != nil {
+		return err
+	}
+	if n != len(fmtd) {
+		return fmt.Errorf("short write formatted code")
 	}
 	return nil
 }
@@ -138,7 +147,7 @@ func newStructDef(name string, val reflect.Value) structDef {
 }
 
 func (s *structDef) Bytes() []byte {
-	s.buff.WriteString("}\n")
+	s.buff.WriteString("}\n\n")
 	return s.buff.Bytes()
 }
 

@@ -14,7 +14,8 @@ var basic = []byte(`{
 	"baz": 42.1,
 	"foo_bar": "frood"
 }`)
-var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
+var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedFmtBasic = "type Basic struct {\n\tBar    string  `json:\"bar\"`\n\tBaz    float64 `json:\"baz\"`\n\tBiz    int     `json:\"biz\"`\n\tFoo    string  `json:\"foo\"`\n\tFooBar string  `json:\"foo_bar\"`\n}\n"
 
 func TestBasicStruct(t *testing.T) {
 	def, err := Gen("Basic", basic)
@@ -51,7 +52,7 @@ var intermediate = []byte(`{
 	],
 	"date": "Fri Jan 23 13:02:46 +0000 2015"
 }`)
-var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tId int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n"
+var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tId int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n\n"
 
 func TestIntermediateStruct(t *testing.T) {
 	def, err := Gen("Intermediate", intermediate)
@@ -93,7 +94,7 @@ var widget = []byte(`{
 	}
 }`)
 
-var expectedWidget = "type TestW struct {\n\tWidget `json:\"widget\"`\n}\ntype Widget struct {\n\tDebug string `json:\"debug\"`\n\tImage `json:\"image\"`\n\tText `json:\"text\"`\n\tWindow `json:\"window\"`\n}\ntype Image struct {\n\tAlignment string `json:\"alignment\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tSrc string `json:\"src\"`\n\tVOffset int `json:\"vOffset\"`\n}\ntype Text struct {\n\tAlignment string `json:\"alignment\"`\n\tData string `json:\"data\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tOnMouseUp string `json:\"onMouseUp\"`\n\tSize int `json:\"size\"`\n\tStyle string `json:\"style\"`\n\tVOffset int `json:\"vOffset\"`\n}\ntype Window struct {\n\tHeight int `json:\"height\"`\n\tName string `json:\"name\"`\n\tTitle string `json:\"title\"`\n\tWidth int `json:\"width\"`\n}\n"
+var expectedWidget = "type TestW struct {\n\tWidget `json:\"widget\"`\n}\n\ntype Widget struct {\n\tDebug string `json:\"debug\"`\n\tImage `json:\"image\"`\n\tText `json:\"text\"`\n\tWindow `json:\"window\"`\n}\n\ntype Image struct {\n\tAlignment string `json:\"alignment\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tSrc string `json:\"src\"`\n\tVOffset int `json:\"vOffset\"`\n}\n\ntype Text struct {\n\tAlignment string `json:\"alignment\"`\n\tData string `json:\"data\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tOnMouseUp string `json:\"onMouseUp\"`\n\tSize int `json:\"size\"`\n\tStyle string `json:\"style\"`\n\tVOffset int `json:\"vOffset\"`\n}\n\ntype Window struct {\n\tHeight int `json:\"height\"`\n\tName string `json:\"name\"`\n\tTitle string `json:\"title\"`\n\tWidth int `json:\"width\"`\n}\n\n"
 
 func TestWidget(t *testing.T) {
 	s, err := Gen("TestW", widget)
@@ -113,7 +114,7 @@ var wnull = []byte(`{
 	"foo_bar": "frood"
 }`)
 
-var expectedWNull = "type WNull struct {\n\tBar interface{} `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
+var expectedWNull = "type WNull struct {\n\tBar interface{} `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
 
 func TestWNull(t *testing.T) {
 	def, err := Gen("WNull", wnull)
@@ -131,10 +132,10 @@ func TestTransmogrify(t *testing.T) {
 		importJSON bool
 		expected   string
 	}{
-		{"", false, fmt.Sprintf("package main\n\n%s", expectedBasic)},
-		{"test", false, fmt.Sprintf("package test\n\n%s", expectedBasic)},
-		{"", true, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
-		{"test", true, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
+		{"", false, fmt.Sprintf("package main\n\n%s", expectedFmtBasic)},
+		{"test", false, fmt.Sprintf("package test\n\n%s", expectedFmtBasic)},
+		{"", true, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
+		{"test", true, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
 	}
 
 	var b bytes.Buffer
