@@ -40,9 +40,9 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 	return &Transmogrifier{r: r, w: w, name: name, pkg: "main"}
 }
 
-// SetPkg set's the package name to s.
+// SetPkg set's the package name to s.  The package name will be lowercased.
 func (t *Transmogrifier) SetPkg(s string) {
-	t.pkg = s
+	t.pkg = strings.ToLower(s)
 }
 
 // SetImportJSON set's whether or not an import statement for encoding/json
