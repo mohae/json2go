@@ -168,10 +168,6 @@ func Gen(name string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	switch d := datum.(type) {
-	case map[string]interface{}:
-		fmt.Println("mapstringinterface", d)
-	case []map[string]interface{}:
-		fmt.Println("[]mapstringinterface", d)
 	case []interface{}:
 		datum = d[0]
 	}
@@ -223,6 +219,15 @@ func defineStruct(q *queue.Queue, result chan []byte, wg *sync.WaitGroup) {
 				s.buff.WriteString(fmt.Sprintf("\t%s `json:%q`\n", k, tag))
 				continue
 			}
+			// a slicemap is a signal that it is a []T which means pluralize
+			// the field name and generate the embedded sturct
+			if typ == "slicemap" {
+				fmt.Println(val.Elem().Index(0).Elem())
+				tmp := newStructDef(k, val.Elem().Index(0).Elem())
+				q.Enqueue(tmp)
+				s.buff.WriteString(fmt.Sprintf("\t%ss []%s `json:%q`\n", k, k, tag))
+				continue
+			}
 			s.buff.WriteString(fmt.Sprintf("\t%s %s `json:%q`\n", k, typ, tag))
 		}
 		result <- s.Bytes()
@@ -245,12 +250,15 @@ func getValueKind(val reflect.Value) string {
 		return reflect.Float64.String()
 	case reflect.Slice:
 		v := val.Elem().Index(0).Elem()
-		if v.Type().Kind() == reflect.Float64 {
+		switch v.Type().Kind() {
+		case reflect.Float64:
 			vv := v.Float()
 			if vv == float64(int64(vv)) {
 				return fmt.Sprintf("[]%s", reflect.Int.String())
 			}
 			return fmt.Sprintf("[]%s", reflect.Float64.String())
+		case reflect.Map:
+			return "slicemap"
 		}
 		return fmt.Sprintf("[]%s", v.Type().Kind().String())
 	}

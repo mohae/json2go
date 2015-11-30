@@ -134,11 +134,11 @@ var basicArr = []byte(`[{
 	"foo_bar": "frood"
 }]`)
 
-var expectedBasicArr = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedBasicArr = "type BasicArr struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
 
 
 func TestBasicArr(t *testing.T) {
-	def, err := Gen("Basic", basicArr)
+	def, err := Gen("BasicArr", basicArr)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -147,6 +147,32 @@ func TestBasicArr(t *testing.T) {
 	}
 }
 
+var sliceMap = []byte(`{
+	"foo": [
+		{
+			"bar": "biz",
+			"foo_bar": "frood"
+		},
+		{
+			"bar": "baz",
+			"foo_bar": "hoopy"
+		}
+	]
+}`)
+
+var expectedSliceMap =  "type SliceMap struct {\n\tFoos []Foo `json:\"foo\"`\n}\n\ntype Foo struct {\n\tBar string `json:\"bar\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+
+func TestArrays(t *testing.T) {
+	def, err := Gen("SliceMap", sliceMap)
+	if err != nil {
+		t.Errorf("unexpected error: %s", sliceMap)
+	}
+	if string(def) != expectedSliceMap {
+		t.Errorf("expected %q got %q", expectedSliceMap, string(def))
+	}
+}
+
+/*
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
