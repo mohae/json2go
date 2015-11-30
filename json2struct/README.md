@@ -11,17 +11,16 @@ The generated source can include the import statement for `encoding/json` by usi
 
 ## Flags
 
-```
-Flag | Short | Default | Description
----- | ----- | ------- | -----------
-name | n | | the name of the struct
-pkg | p | main | the name of the package
-input | i | stdin | the input source
-output | o | stdout | the output destination
-writejson | w | false | write the source JSON to file; only applicable if output is not stdout
-import | i | false | add import statement for 'encoding/json'
+    Flag | Short | Default | Description  
+    :---|:---|:---|:---  
+    -name | -n |   | the name of the struct  
+    -pkg | -p | main | the name of the package  
+    -input | -i | stdin | the input source  
+    -output | -o | stdout | the output destination  
+    -writejson | -w | false | write the source JSON to file; only applicable if output is not stdout  
+    -import | -i | false | add import statement for 'encoding/json'  
+ 
 
-```
 ### Example
 
     curl -s https://api.github.com/repos/mohae/json2struct | json2struct -o github.go -w -m -n Github
