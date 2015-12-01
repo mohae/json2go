@@ -21,11 +21,15 @@ The generated source can include the import statement for `encoding/json` by usi
     -import | -i | false | Add import statement for 'encoding/json'.  
     -help | -h | false | Print the help text; 'help' is also valid.
 
-### Example 1
+## Example 1
+
+This example gets the JSON from a remote source and pipes it into `json2struct`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.
+
+### Command
 
     curl -s https://api.github.com/repos/mohae/json2struct | json2struct -o github.go -w -m -n Github
 
-Results in `github.go`:
+#### Generated `github.go`
 
 ```
 package main
@@ -128,7 +132,7 @@ type Owner struct {
 
 ```
 
-and github.json:
+#### Source JSON written to `github.json`
 
 ```
 {
@@ -231,7 +235,133 @@ This example uses json of much greater complexity in a local file.
 
     json2struct -i weather.json -o weather.go -n weather
 
-### Contents of weather.json
+#### Generated weather.go
+The generated Go source code for `weather.json`:
+
+```
+package main
+
+type weather struct {
+	HourlyForecasts []HourlyForecast `json:"hourly_forecast"`
+	Response        `json:"response"`
+}
+
+type HourlyForecast struct {
+	FCTTIME   `json:"FCTTIME"`
+	Condition string `json:"condition"`
+	Dewpoint  `json:"dewpoint"`
+	Fctcode   string `json:"fctcode"`
+	Feelslike `json:"feelslike"`
+	Heatindex `json:"heatindex"`
+	Humidity  string `json:"humidity"`
+	Icon      string `json:"icon"`
+	IconUrl   string `json:"icon_url"`
+	Mslp      `json:"mslp"`
+	Pop       string `json:"pop"`
+	Qpf       `json:"qpf"`
+	Sky       string `json:"sky"`
+	Snow      `json:"snow"`
+	Temp      `json:"temp"`
+	Uvi       string `json:"uvi"`
+	Wdir      `json:"wdir"`
+	Windchill `json:"windchill"`
+	Wspd      `json:"wspd"`
+	Wx        string `json:"wx"`
+}
+
+type Response struct {
+	Features       `json:"features"`
+	TermsofService string `json:"termsofService"`
+	Version        string `json:"version"`
+}
+
+type FCTTIME struct {
+	UTCDATE                string `json:"UTCDATE"`
+	Age                    string `json:"age"`
+	Ampm                   string `json:"ampm"`
+	Civil                  string `json:"civil"`
+	Epoch                  string `json:"epoch"`
+	Hour                   string `json:"hour"`
+	HourPadded             string `json:"hour_padded"`
+	Isdst                  string `json:"isdst"`
+	Mday                   string `json:"mday"`
+	MdayPadded             string `json:"mday_padded"`
+	Min                    string `json:"min"`
+	MinUnpadded            string `json:"min_unpadded"`
+	Mon                    string `json:"mon"`
+	MonAbbrev              string `json:"mon_abbrev"`
+	MonPadded              string `json:"mon_padded"`
+	MonthName              string `json:"month_name"`
+	MonthNameAbbrev        string `json:"month_name_abbrev"`
+	Pretty                 string `json:"pretty"`
+	Sec                    string `json:"sec"`
+	Tz                     string `json:"tz"`
+	WeekdayName            string `json:"weekday_name"`
+	WeekdayNameAbbrev      string `json:"weekday_name_abbrev"`
+	WeekdayNameNight       string `json:"weekday_name_night"`
+	WeekdayNameNightUnlang string `json:"weekday_name_night_unlang"`
+	WeekdayNameUnlang      string `json:"weekday_name_unlang"`
+	Yday                   string `json:"yday"`
+	Year                   string `json:"year"`
+}
+
+type Dewpoint struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Feelslike struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Heatindex struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Mslp struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Qpf struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Snow struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Temp struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Wdir struct {
+	Degrees string `json:"degrees"`
+	Dir     string `json:"dir"`
+}
+
+type Windchill struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Wspd struct {
+	English string `json:"english"`
+	Metric  string `json:"metric"`
+}
+
+type Features struct {
+	Hourly int `json:"hourly"`
+}
+```
+
+#### Contents of weather.json
+The source JSON used to generate the Go struct definitions.
 
  ```
     {  
@@ -3124,130 +3254,5 @@ This example uses json of much greater complexity in a local file.
          }
       }
    ]
-}
-```
-
-### Generated weather.go
-The generated json for `weather.json`:
-
-```
-package main
-
-type weather struct {
-	HourlyForecasts []HourlyForecast `json:"hourly_forecast"`
-	Response        `json:"response"`
-}
-
-type HourlyForecast struct {
-	FCTTIME   `json:"FCTTIME"`
-	Condition string `json:"condition"`
-	Dewpoint  `json:"dewpoint"`
-	Fctcode   string `json:"fctcode"`
-	Feelslike `json:"feelslike"`
-	Heatindex `json:"heatindex"`
-	Humidity  string `json:"humidity"`
-	Icon      string `json:"icon"`
-	IconUrl   string `json:"icon_url"`
-	Mslp      `json:"mslp"`
-	Pop       string `json:"pop"`
-	Qpf       `json:"qpf"`
-	Sky       string `json:"sky"`
-	Snow      `json:"snow"`
-	Temp      `json:"temp"`
-	Uvi       string `json:"uvi"`
-	Wdir      `json:"wdir"`
-	Windchill `json:"windchill"`
-	Wspd      `json:"wspd"`
-	Wx        string `json:"wx"`
-}
-
-type Response struct {
-	Features       `json:"features"`
-	TermsofService string `json:"termsofService"`
-	Version        string `json:"version"`
-}
-
-type FCTTIME struct {
-	UTCDATE                string `json:"UTCDATE"`
-	Age                    string `json:"age"`
-	Ampm                   string `json:"ampm"`
-	Civil                  string `json:"civil"`
-	Epoch                  string `json:"epoch"`
-	Hour                   string `json:"hour"`
-	HourPadded             string `json:"hour_padded"`
-	Isdst                  string `json:"isdst"`
-	Mday                   string `json:"mday"`
-	MdayPadded             string `json:"mday_padded"`
-	Min                    string `json:"min"`
-	MinUnpadded            string `json:"min_unpadded"`
-	Mon                    string `json:"mon"`
-	MonAbbrev              string `json:"mon_abbrev"`
-	MonPadded              string `json:"mon_padded"`
-	MonthName              string `json:"month_name"`
-	MonthNameAbbrev        string `json:"month_name_abbrev"`
-	Pretty                 string `json:"pretty"`
-	Sec                    string `json:"sec"`
-	Tz                     string `json:"tz"`
-	WeekdayName            string `json:"weekday_name"`
-	WeekdayNameAbbrev      string `json:"weekday_name_abbrev"`
-	WeekdayNameNight       string `json:"weekday_name_night"`
-	WeekdayNameNightUnlang string `json:"weekday_name_night_unlang"`
-	WeekdayNameUnlang      string `json:"weekday_name_unlang"`
-	Yday                   string `json:"yday"`
-	Year                   string `json:"year"`
-}
-
-type Dewpoint struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Feelslike struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Heatindex struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Mslp struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Qpf struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Snow struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Temp struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Wdir struct {
-	Degrees string `json:"degrees"`
-	Dir     string `json:"dir"`
-}
-
-type Windchill struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Wspd struct {
-	English string `json:"english"`
-	Metric  string `json:"metric"`
-}
-
-type Features struct {
-	Hourly int `json:"hourly"`
 }
 ```
