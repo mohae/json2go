@@ -16,6 +16,16 @@ import (
 	"github.com/mohae/firkin/queue"
 )
 
+type ShortWriteError struct {
+	n int
+	written int
+	operation string
+}
+
+func (e ShortWriteError) Error() string {
+	return fmt.Sprintf("short write of %s: wrote %d bytes of %d", e.operation, e.n, e.written)
+}
+
 // stringValues is a slice of reflect.Value holding *reflect.StringValue.
 // It implements the methods to sort by string.
 type stringValues []reflect.Value
@@ -82,7 +92,7 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != m {
-			return fmt.Errorf("short write json buffer")
+			return ShortWriteError{n: n, written: m, operation: "JSON to buffer"}
 		}
 	}
 	if t.writeJSON {
@@ -91,7 +101,7 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != buff.Len() {
-			return fmt.Errorf("short write json file")
+			return ShortWriteError{n: buff.Len(), written: n, operation: "JSON to file"}
 		}
 	}
 	res, err := Gen(t.name, buff.Bytes())
@@ -104,7 +114,7 @@ func (t *Transmogrifier) Gen() error {
 		return err
 	}
 	if n != (10 + len(t.pkg)) {
-		return fmt.Errorf("short write package")
+		return ShortWriteError{n: len(t.pkg), written: n, operation: "package name to buffer"}
 	}
 
 	if t.importJSON {
@@ -113,7 +123,7 @@ func (t *Transmogrifier) Gen() error {
 			return err
 		}
 		if n != 29 {
-			return fmt.Errorf("short write import")
+			return ShortWriteError{n: 29, written: n, operation: "import to buffer"}
 		}
 	}
 	n, err = buff.Write(res)
@@ -121,7 +131,7 @@ func (t *Transmogrifier) Gen() error {
 		return err
 	}
 	if n != len(res) {
-		return fmt.Errorf("short write generated structs")
+		return ShortWriteError{n: len(res), written: n, operation: "Go struct definition"}
 	}
 	fmtd, err := format.Source(buff.Bytes())
 	n, err = t.w.Write(fmtd)
@@ -129,7 +139,7 @@ func (t *Transmogrifier) Gen() error {
 		return err
 	}
 	if n != len(fmtd) {
-		return fmt.Errorf("short write formatted code")
+		return ShortWriteError{n: len(fmtd), written: n, operation: "formatted Go code"}
 	}
 	return nil
 }
@@ -159,7 +169,7 @@ func (s *structDef) Bytes() []byte {
 // will be returned.
 func Gen(name string, data []byte) ([]byte, error) {
 	if name == "" {
-		return nil, fmt.Errorf("no name")
+		return nil, fmt.Errorf("struct name required")
 	}
 	name = strings.Title(name)
 	// unmarshal the JSON-encoded data
@@ -172,7 +182,6 @@ func Gen(name string, data []byte) ([]byte, error) {
 	case []interface{}:
 		datum = d[0]
 	}
-
 	var buff bytes.Buffer
 	var wg sync.WaitGroup
 	q := queue.NewQ(2)
