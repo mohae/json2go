@@ -12,4 +12,4 @@ Keys with underscores, `_`, are converted to MixedCase.  Keys starting with char
 
 If a field's value is null, the field's type will be `interface{}`, as that field's type is not determinable.
 
-The CLI is in the `json2struct` subdirectory.  See that README for more info.
+The CLI is in the `cmd/json2struct` subdirectory.  See that [README](https://github.com/mohae/json2struct/tree/master/cmd/json2struct) for more info.
