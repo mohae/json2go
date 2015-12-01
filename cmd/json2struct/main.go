@@ -69,7 +69,7 @@ func realMain() int {
 		return 0
 	}
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided using the -n or -name flag")
+		fmt.Fprintln(os.Stderr, "\nstruct2json error: name of struct must be provided using the -n or -name flag.\nUse the '-h', '-help', or 'help' flag for more information about json2struct flags.")
 		return 1
 	}
 	var in, out, jsn *os.File
