@@ -13,13 +13,13 @@ The generated source can include the import statement for `encoding/json` by usi
 
     Flag | Short | Default | Description  
     :---|:---|:---|:---  
-    -name | -n |   | the name of the struct  
-    -pkg | -p | main | the name of the package  
-    -input | -i | stdin | the input source  
-    -output | -o | stdout | the output destination  
-    -writejson | -w | false | write the source JSON to file; only applicable if output is not stdout  
-    -import | -i | false | add import statement for 'encoding/json'  
-
+    -name | -n |   | The name of the struct: required.  
+    -pkg | -p | main | The name of the package.  
+    -input | -i | stdin | The JSON input source.  
+    -output | -o | stdout | The Go source code output destination.  
+    -writejson | -w | false | Write the JSON to file; only valid when the output is a file.  
+    -import | -i | false | Add import statement for 'encoding/json'.  
+    -help | -h | false | Print the help text; 'help' is also valid.
 
 ### Example 1
 

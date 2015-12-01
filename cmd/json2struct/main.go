@@ -126,9 +126,9 @@ func Help() {
 	helpText := `
 Usage: json2go [options]
 
-Go struct definitions will be generated from the unput JSON.  The
+Go struct definitions will be generated from the input JSON.  The
 generated Go code will be part of package main, unless a different
-package is specified.
+package is specified using either the -p or -pkg flag.
 
 A JSON source and the name for the struct must be specified.  The JSON
 can either be piped in via stdin or a file with the JSON can be
@@ -143,16 +143,17 @@ or
     $ json2struct -i example.json -n example
 
 Options:
+
 flag             default   description
-------------------------------------------------------------------------
--n  -name                  The name of the struct.
+--------------   -------   ------------------------------------------
+-n  -name                  The name of the struct: required.
 -p  -pkg         main      The name of the package.
 -i  -input       stdin     The JSON input source.
--o  -output      stdout    The JSON output destination.
+-o  -output      stdout    The Go srouce code output destination.
 -w  -writejson   false     Write the source JSON to file; only valid
                            when the output is a file.
 -m  -import      false     Add import statement for 'encoding/json'.
--h  -help        false     Print the help; 'help' is also a valid value.
+-h  -help        false     Print the help text; 'help' is also valid.
 `
 	fmt.Println(helpText)
 }
