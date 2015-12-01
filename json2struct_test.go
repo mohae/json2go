@@ -1,13 +1,12 @@
 package json2struct
 
 import (
-	_ "bufio"
-	_ "bytes"
-	_ "fmt"
+	"bufio"
+	"bytes"
+	"fmt"
 	"testing"
 )
 
-/*
 var basic = []byte(`{
 	"foo": "fooer",
 	"bar": "bars",
@@ -19,7 +18,7 @@ var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz flo
 var expectedFmtBasic = "type Basic struct {\n\tBar    string  `json:\"bar\"`\n\tBaz    float64 `json:\"baz\"`\n\tBiz    int     `json:\"biz\"`\n\tFoo    string  `json:\"foo\"`\n\tFooBar string  `json:\"foo_bar\"`\n}\n"
 
 func TestBasicStruct(t *testing.T) {
-	def, err := Gen("Basic", basic)
+	def, err := Gen("basic", basic)
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
@@ -53,7 +52,7 @@ var intermediate = []byte(`{
 	],
 	"date": "Fri Jan 23 13:02:46 +0000 2015"
 }`)
-var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tId int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n\n"
+var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tID int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n\n"
 
 func TestIntermediateStruct(t *testing.T) {
 	def, err := Gen("Intermediate", intermediate)
@@ -126,7 +125,7 @@ func TestWNull(t *testing.T) {
 		t.Errorf("expected %q got %q", expectedWNull, string(def))
 	}
 }
-*/
+
 var basicArr = []byte(`[{
 	"foo": "fooer",
 	"bar": "bars",
@@ -172,7 +171,6 @@ func TestArrays(t *testing.T) {
 	}
 }
 
-/*
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
@@ -288,4 +286,3 @@ func TestCleanFieldName(t *testing.T) {
 		}
 	}
 }
-*/

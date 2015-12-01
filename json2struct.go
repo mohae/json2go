@@ -161,6 +161,7 @@ func Gen(name string, data []byte) ([]byte, error) {
 	if name == "" {
 		return nil, fmt.Errorf("no name")
 	}
+	name = strings.Title(name)
 	// unmarshal the JSON-encoded data
 	var datum interface{}
 	err := json.Unmarshal(data, &datum)

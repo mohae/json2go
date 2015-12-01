@@ -241,7 +241,7 @@ The generated Go source code for `weather.json`:
 ```
 package main
 
-type weather struct {
+type Weather struct {
 	HourlyForecasts []HourlyForecast `json:"hourly_forecast"`
 	Response        `json:"response"`
 }
