@@ -39,95 +39,95 @@ import (
 )
 
 type Github struct {
-	ArchiveUrl       string      `json:"archive_url"`
-	AssigneesUrl     string      `json:"assignees_url"`
-	BlobsUrl         string      `json:"blobs_url"`
-	BranchesUrl      string      `json:"branches_url"`
-	CloneUrl         string      `json:"clone_url"`
-	CollaboratorsUrl string      `json:"collaborators_url"`
-	CommentsUrl      string      `json:"comments_url"`
-	CommitsUrl       string      `json:"commits_url"`
-	CompareUrl       string      `json:"compare_url"`
-	ContentsUrl      string      `json:"contents_url"`
-	ContributorsUrl  string      `json:"contributors_url"`
+	ArchiveURL       string      `json:"archive_url"`
+	AssigneesURL     string      `json:"assignees_url"`
+	BlobsURL         string      `json:"blobs_url"`
+	BranchesURL      string      `json:"branches_url"`
+	CloneURL         string      `json:"clone_url"`
+	CollaboratorsURL string      `json:"collaborators_url"`
+	CommentsURL      string      `json:"comments_url"`
+	CommitsURL       string      `json:"commits_url"`
+	CompareURL       string      `json:"compare_url"`
+	ContentsURL      string      `json:"contents_url"`
+	ContributorsURL  string      `json:"contributors_url"`
 	CreatedAt        string      `json:"created_at"`
 	DefaultBranch    string      `json:"default_branch"`
 	Description      string      `json:"description"`
-	DownloadsUrl     string      `json:"downloads_url"`
-	EventsUrl        string      `json:"events_url"`
+	DownloadsURL     string      `json:"downloads_url"`
+	EventsURL        string      `json:"events_url"`
 	Fork             bool        `json:"fork"`
 	Forks            int         `json:"forks"`
 	ForksCount       int         `json:"forks_count"`
-	ForksUrl         string      `json:"forks_url"`
+	ForksURL         string      `json:"forks_url"`
 	FullName         string      `json:"full_name"`
-	GitCommitsUrl    string      `json:"git_commits_url"`
-	GitRefsUrl       string      `json:"git_refs_url"`
-	GitTagsUrl       string      `json:"git_tags_url"`
-	GitUrl           string      `json:"git_url"`
+	GitCommitsURL    string      `json:"git_commits_url"`
+	GitRefsURL       string      `json:"git_refs_url"`
+	GitTagsURL       string      `json:"git_tags_url"`
+	GitURL           string      `json:"git_url"`
 	HasDownloads     bool        `json:"has_downloads"`
 	HasIssues        bool        `json:"has_issues"`
 	HasPages         bool        `json:"has_pages"`
 	HasWiki          bool        `json:"has_wiki"`
 	Homepage         interface{} `json:"homepage"`
-	HooksUrl         string      `json:"hooks_url"`
-	HtmlUrl          string      `json:"html_url"`
-	Id               int         `json:"id"`
-	IssueCommentUrl  string      `json:"issue_comment_url"`
-	IssueEventsUrl   string      `json:"issue_events_url"`
-	IssuesUrl        string      `json:"issues_url"`
-	KeysUrl          string      `json:"keys_url"`
-	LabelsUrl        string      `json:"labels_url"`
+	HooksURL         string      `json:"hooks_url"`
+	HTMLURL          string      `json:"html_url"`
+	ID               int         `json:"id"`
+	IssueCommentURL  string      `json:"issue_comment_url"`
+	IssueEventsURL   string      `json:"issue_events_url"`
+	IssuesURL        string      `json:"issues_url"`
+	KeysURL          string      `json:"keys_url"`
+	LabelsURL        string      `json:"labels_url"`
 	Language         string      `json:"language"`
-	LanguagesUrl     string      `json:"languages_url"`
-	MergesUrl        string      `json:"merges_url"`
-	MilestonesUrl    string      `json:"milestones_url"`
-	MirrorUrl        interface{} `json:"mirror_url"`
+	LanguagesURL     string      `json:"languages_url"`
+	MergesURL        string      `json:"merges_url"`
+	MilestonesURL    string      `json:"milestones_url"`
+	MirrorURL        interface{} `json:"mirror_url"`
 	Name             string      `json:"name"`
 	NetworkCount     int         `json:"network_count"`
-	NotificationsUrl string      `json:"notifications_url"`
+	NotificationsURL string      `json:"notifications_url"`
 	OpenIssues       int         `json:"open_issues"`
 	OpenIssuesCount  int         `json:"open_issues_count"`
 	Owner            `json:"owner"`
 	Private          bool   `json:"private"`
-	PullsUrl         string `json:"pulls_url"`
+	PullsURL         string `json:"pulls_url"`
 	PushedAt         string `json:"pushed_at"`
-	ReleasesUrl      string `json:"releases_url"`
+	ReleasesURL      string `json:"releases_url"`
 	Size             int    `json:"size"`
-	SshUrl           string `json:"ssh_url"`
+	SSHURL           string `json:"ssh_url"`
 	StargazersCount  int    `json:"stargazers_count"`
-	StargazersUrl    string `json:"stargazers_url"`
-	StatusesUrl      string `json:"statuses_url"`
+	StargazersURL    string `json:"stargazers_url"`
+	StatusesURL      string `json:"statuses_url"`
 	SubscribersCount int    `json:"subscribers_count"`
-	SubscribersUrl   string `json:"subscribers_url"`
-	SubscriptionUrl  string `json:"subscription_url"`
-	SvnUrl           string `json:"svn_url"`
-	TagsUrl          string `json:"tags_url"`
-	TeamsUrl         string `json:"teams_url"`
-	TreesUrl         string `json:"trees_url"`
+	SubscribersURL   string `json:"subscribers_url"`
+	SubscriptionURL  string `json:"subscription_url"`
+	SvnURL           string `json:"svn_url"`
+	TagsURL          string `json:"tags_url"`
+	TeamsURL         string `json:"teams_url"`
+	TreesURL         string `json:"trees_url"`
 	UpdatedAt        string `json:"updated_at"`
-	Url              string `json:"url"`
+	URL              string `json:"url"`
 	Watchers         int    `json:"watchers"`
 	WatchersCount    int    `json:"watchers_count"`
 }
 
 type Owner struct {
-	AvatarUrl         string `json:"avatar_url"`
-	EventsUrl         string `json:"events_url"`
-	FollowersUrl      string `json:"followers_url"`
-	FollowingUrl      string `json:"following_url"`
-	GistsUrl          string `json:"gists_url"`
-	GravatarId        string `json:"gravatar_id"`
-	HtmlUrl           string `json:"html_url"`
-	Id                int    `json:"id"`
+	AvatarURL         string `json:"avatar_url"`
+	EventsURL         string `json:"events_url"`
+	FollowersURL      string `json:"followers_url"`
+	FollowingURL      string `json:"following_url"`
+	GistsURL          string `json:"gists_url"`
+	GravatarID        string `json:"gravatar_id"`
+	HTMLURL           string `json:"html_url"`
+	ID                int    `json:"id"`
 	Login             string `json:"login"`
-	OrganizationsUrl  string `json:"organizations_url"`
-	ReceivedEventsUrl string `json:"received_events_url"`
-	ReposUrl          string `json:"repos_url"`
+	OrganizationsURL  string `json:"organizations_url"`
+	ReceivedEventsURL string `json:"received_events_url"`
+	ReposURL          string `json:"repos_url"`
 	SiteAdmin         bool   `json:"site_admin"`
-	StarredUrl        string `json:"starred_url"`
-	SubscriptionsUrl  string `json:"subscriptions_url"`
+	StarredURL        string `json:"starred_url"`
+	SubscriptionsURL  string `json:"subscriptions_url"`
 	Type              string `json:"type"`
-	Url               string `json:"url"`
+	URL               string `json:"url"`
 }
 
 ```
@@ -255,7 +255,7 @@ type HourlyForecast struct {
 	Heatindex `json:"heatindex"`
 	Humidity  string `json:"humidity"`
 	Icon      string `json:"icon"`
-	IconUrl   string `json:"icon_url"`
+	IconURL   string `json:"icon_url"`
 	Mslp      `json:"mslp"`
 	Pop       string `json:"pop"`
 	Qpf       `json:"qpf"`

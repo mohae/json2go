@@ -1,11 +1,12 @@
 package json2struct
 
 import (
-	_"bufio"
-	_"bytes"
-	_"fmt"
+	_ "bufio"
+	_ "bytes"
+	_ "fmt"
 	"testing"
 )
+
 /*
 var basic = []byte(`{
 	"foo": "fooer",
@@ -159,7 +160,7 @@ var sliceMap = []byte(`{
 	]
 }`)
 
-var expectedSliceMap =  "type SliceMap struct {\n\tFoos []Foo `json:\"foo\"`\n}\n\ntype Foo struct {\n\tBar string `json:\"bar\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedSliceMap = "type SliceMap struct {\n\tFoos []Foo `json:\"foo\"`\n}\n\ntype Foo struct {\n\tBar string `json:\"bar\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
 
 func TestArrays(t *testing.T) {
 	def, err := Gen("SliceMap", sliceMap)

@@ -29,7 +29,7 @@ var (
 	output     string
 	writeJSON  bool
 	importJSON bool
-	help bool
+	help       bool
 )
 
 func init() {
