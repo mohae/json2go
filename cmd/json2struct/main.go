@@ -29,9 +29,12 @@ var (
 	output     string
 	writeJSON  bool
 	importJSON bool
+	help bool
 )
 
 func init() {
+	flag.BoolVar(&help, "help", false, "json2struct help")
+	flag.BoolVar(&help, "h", false, "the short flag for -help")
 	flag.StringVar(&name, "name", "", "the name of the struct")
 	flag.StringVar(&name, "n", "", "the short flag for -name")
 	flag.StringVar(&pkg, "pkg", "", "the name of the package")
@@ -43,7 +46,7 @@ func init() {
 	flag.BoolVar(&writeJSON, "writejson", false, "write the source JSON to file; if the output destination is stdout, this flag will be ignored")
 	flag.BoolVar(&writeJSON, "w", false, "the short flag for -writejson")
 	flag.BoolVar(&importJSON, "import", false, "add import statement for encoding/json")
-	flag.BoolVar(&importJSON, "m", false, "the shortflat for -import")
+	flag.BoolVar(&importJSON, "m", false, "the short flag for -import")
 }
 
 func main() {
@@ -52,8 +55,21 @@ func main() {
 
 func realMain() int {
 	flag.Parse()
+	args := flag.Args()
+	// the only arg we care about is help.  This is in case the user uses
+	// just help instead of -help or -h
+	for _, arg := range args {
+		if arg == "help" {
+			help = true
+			break
+		}
+	}
+	if help {
+		Help()
+		return 0
+	}
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided")
+		fmt.Fprintln(os.Stderr, "struct2json error: name of struct must be provided using the -n or -name flag")
 		return 1
 	}
 	var in, out, jsn *os.File
@@ -88,15 +104,6 @@ func realMain() int {
 		}
 	}
 	defer out.Close()
-	// json is only written out if the output isn't stdout
-	// TODO
-	// get the output filename - ext
-	// add .json ext
-	// crete output file
-	// pipe input to output
-	//if writeJSON && output != "stdout" {
-
-	//}
 
 	t := json2struct.NewTransmogrifier(name, in, out)
 	if jsn != nil {
@@ -113,4 +120,39 @@ func realMain() int {
 		return 1
 	}
 	return 0
+}
+
+func Help() {
+	helpText := `
+Usage: json2go [options]
+
+Go struct definitions will be generated from the unput JSON.  The
+generated Go code will be part of package main, unless a different
+package is specified.
+
+A JSON source and the name for the struct must be specified.  The JSON
+can either be piped in via stdin or a file with the JSON can be
+specified with either the -i or -input flag.  The name of the struct
+is specified with either the -n or -name flag.
+
+Minimal examples:
+    $ curl http://example.com/source.json | json2strct -n example
+
+or
+
+    $ json2struct -i example.json -n example
+
+Options:
+flag             default   description
+------------------------------------------------------------------------
+-n  -name                  The name of the struct.
+-p  -pkg         main      The name of the package.
+-i  -input       stdin     The JSON input source.
+-o  -output      stdout    The JSON output destination.
+-w  -writejson   false     Write the source JSON to file; only valid
+                           when the output is a file.
+-m  -import      false     Add import statement for 'encoding/json'.
+-h  -help        false     Print the help; 'help' is also a valid value.
+`
+	fmt.Println(helpText)
 }
