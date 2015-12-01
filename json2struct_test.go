@@ -129,13 +129,12 @@ func TestWNull(t *testing.T) {
 var basicArr = []byte(`[{
 	"foo": "fooer",
 	"bar": "bars",
-	"biz": 1,
+	"biz_id": 1,
 	"baz": 42.1,
 	"foo_bar": "frood"
 }]`)
 
-var expectedBasicArr = "type BasicArr struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
-
+var expectedBasicArr = "type BasicArr struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBizID int `json:\"biz_id\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
 
 func TestBasicArr(t *testing.T) {
 	def, err := Gen("BasicArr", basicArr)

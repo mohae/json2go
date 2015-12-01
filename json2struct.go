@@ -274,9 +274,10 @@ func getFieldName(key reflect.Value) (name, tag string) {
 	for i, v := range vals {
 		if i == 0 {
 			name = cleanFieldName(v)
+			name = toUpperInitialism(name)
 			continue
 		}
-		name = fmt.Sprintf("%s%s", name, strings.Title(v))
+		name = fmt.Sprintf("%s%s", name, toUpperInitialism(strings.Title(v)))
 	}
 	return name, tag
 }
@@ -334,4 +335,57 @@ func numToAlpha(r rune) string {
 		return "Nine"
 	}
 	return ""
+}
+
+// List and comment is from https://github.com/golang/lint/blob/master/lint.go
+// Original copyright:
+// Copyright (c) 2013 The Go Authors. All rights reserved.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd.
+//
+// commonInitialisms is a set of common initialisms.
+// Only add entries that are highly unlikely to be non-initialisms.
+// For instance, "ID" is fine (Freudian code is rare), but "AND" is not.
+var commonInitialisms = map[string]struct{}{
+	"API":   struct{}{},
+	"ASCII": struct{}{},
+	"CPU":   struct{}{},
+	"CSS":   struct{}{},
+	"DNS":   struct{}{},
+	"EOF":   struct{}{},
+	"GUID":  struct{}{},
+	"HTML":  struct{}{},
+	"HTTP":  struct{}{},
+	"HTTPS": struct{}{},
+	"ID":    struct{}{},
+	"IP":    struct{}{},
+	"JSON":  struct{}{},
+	"LHS":   struct{}{},
+	"QPS":   struct{}{},
+	"RAM":   struct{}{},
+	"RHS":   struct{}{},
+	"RPC":   struct{}{},
+	"SLA":   struct{}{},
+	"SMTP":  struct{}{},
+	"SSH":   struct{}{},
+	"TLS":   struct{}{},
+	"TTL":   struct{}{},
+	"UI":    struct{}{},
+	"UID":   struct{}{},
+	"UUID":  struct{}{},
+	"URI":   struct{}{},
+	"URL":   struct{}{},
+	"UTF8":  struct{}{},
+	"VM":    struct{}{},
+	"XML":   struct{}{},
+}
+
+func toUpperInitialism(s string) string {
+	tmp := strings.ToUpper(s)
+	if _, ok := commonInitialisms[tmp]; ok {
+		return tmp
+	}
+	return s
 }
