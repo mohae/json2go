@@ -41,6 +41,7 @@ type Transmogrifier struct {
 	w          io.Writer
 	jw         io.Writer
 	name       string
+	structName   string
 	pkg        string
 	importJSON bool
 	writeJSON  bool
@@ -48,9 +49,19 @@ type Transmogrifier struct {
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
-// to w.
+// to w.  The name is the name of the type that will be defined from the JSON.
+// Embedded struct names, if there are any embedded structs, are derived from
+// their associated key value.
 func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 	return &Transmogrifier{r: r, w: w, name: name, pkg: "main"}
+}
+
+// SetStructName set's the name of the type derived from the interface{}
+// portion of JSON that is of type map[string]interface{}.  This is used
+// when isMap is set to true.  If isMap is set to true but typeName is
+// not set, Struct will be used as the type name.
+func (t *Transmogrifier) SetStructName(s string) {
+	t.structName = s
 }
 
 // SetPkg set's the package name to s.  The package name will be lowercased.
@@ -77,11 +88,16 @@ func (t *Transmogrifier) SetWriteJSON(b bool) {
 }
 
 // SetIsMap set's whether or not the top level of the JSON is a map.  If
-// true, the type will be defined as type Name map[string][]Struct instead
-// of type Name struct {}.
+// true, the structName should be set using the SetStructName method.  If
+// the structName is not set, the type name of the struct that the
+// interface{} part of the map[string]interface{} or map[string][]interface{}
+// contains will be Struct.
+//
+// json2struct's decoding of JSON map data supports:
+//    map[string]interface{}
+//    map[string][]interface{}
 //
 // If it is a map, the key is an actual key and not the name of the struct.
-// The struct will be called Struct.
 func (t *Transmogrifier) SetIsMap(b bool) {
 	t.isMap = b
 }
@@ -118,7 +134,7 @@ func (t *Transmogrifier) Gen() error {
 	var res []byte
 	var err error
 	if t.isMap {
-		res, err = GenMapType(t.name, "", buff.Bytes())
+		res, err = GenMapType(t.name, t.structName, buff.Bytes())
 	} else {
 		res, err = Gen(t.name, buff.Bytes())
 	}

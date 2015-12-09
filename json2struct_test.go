@@ -1,12 +1,12 @@
 package json2struct
 
 import (
-	_"bufio"
-	_"bytes"
-	_"fmt"
+	"bufio"
+	"bytes"
+	"fmt"
 	"testing"
 )
-/*
+
 var basic = []byte(`{
 	"foo": "fooer",
 	"bar": "bars",
@@ -170,7 +170,7 @@ func TestArrays(t *testing.T) {
 		t.Errorf("expected %q got %q", expectedSliceMap, string(def))
 	}
 }
-*/
+
 var mapType = []byte(`{
   "example.com": {
         "name": "example.com",
@@ -181,7 +181,9 @@ var mapType = []byte(`{
 }`)
 
 var expectedMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+var expectedFmtMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
 var expectedMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+var expectedFmtMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
 func TestMapType(t *testing.T) {
 	def, err := GenMapType("Zone", "", mapType)
 	if err != nil {
@@ -231,31 +233,46 @@ func TestMapSliceType(t *testing.T) {
 	}
 }
 
-/*
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
+		name string
+		structName string
+		isMap bool
 		importJSON bool
+		json	[]byte
 		expected   string
 	}{
-		{"", false, fmt.Sprintf("package main\n\n%s", expectedFmtBasic)},
-		{"test", false, fmt.Sprintf("package test\n\n%s", expectedFmtBasic)},
-		{"", true, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
-		{"test", true, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
-	}
+		{"", "Basic", "", false, false, basic, fmt.Sprintf("package main\n\n%s", expectedFmtBasic)},
+		{"test", "Basic", "", false, false, basic, fmt.Sprintf("package test\n\n%s", expectedFmtBasic)},
+		{"", "Basic", "", false, true, basic, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
+		{"test", "Basic", "", false, true, basic, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
+		{"", "zone", "", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedFmtMapTypeStruct)},
+		{"test", "zone", "", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedFmtMapTypeStruct)},
+		{"", "zone", "", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeStruct)},
+		{"test", "zone", "", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeStruct)},
+		{"", "zone", "domain", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedFmtMapTypeDomain)},
+		{"test", "zone", "domain", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedFmtMapTypeDomain)},
+		{"", "zone", "domain", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
+		{"test", "zone", "domain", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
 
+	}
 	var b bytes.Buffer
 	for i, test := range tests {
 		// create reader
-		r := bytes.NewReader(basic)
+		r := bytes.NewReader(test.json)
 		// create Writer
 		w := bufio.NewWriter(&b)
 
-		calvin := NewTransmogrifier("Basic", r, w)
+		calvin := NewTransmogrifier(test.name, r, w)
 		if test.pkg != "" {
 			calvin.SetPkg(test.pkg)
 		}
 		calvin.SetImportJSON(test.importJSON)
+		if test.isMap {
+			calvin.SetIsMap(test.isMap)
+			calvin.SetStructName(test.structName)
+		}
 		err := calvin.Gen()
 		if err != nil {
 			t.Errorf("%d: unexpected error %q", i, err)
@@ -347,4 +364,3 @@ func TestCleanFieldName(t *testing.T) {
 		}
 	}
 }
-*/
