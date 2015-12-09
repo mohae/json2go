@@ -1,13 +1,26 @@
-// json2struct generates Go struct definitions from JSON encoded objects as
-// defined in RFC 4627.  If the source JSON contains other JSON objects,
-// separate structs are defined and the object is embedded in the defintion.
-// The result is a Go source, for the provided package name, with the
-// struct definiton(s) for the source JSON.
+// json2struct generates Go type definitions from JSON encoded objects as
+// defined in RFC 4627.  The type can be one of the following:
+//    map[string]Type
+//    map[string][]Type
+//    Type
 //
-// The source file's name will be the same as the provided struct's name.
+// By default a struct Type will be generated, unless the -ismap flag is
+// used.
 //
-// Optionally, the source json can be written out to a file.  This file's
-// name will be the same as the Go source file's name, ending in '.json'.
+// If a Type contains other JSON objects, separate structs are defined
+// and the struct is embedded in the defintion.  The result is Go source
+// for the provided package name, with the Type definiton(s) for the source
+// JSON.
+//
+// If an output destination is specified, the generated Go source will be
+// written to the specified destination, otherwise it will be written to
+// stdout.
+//
+// Optionally, if there is an output destination that isn't stdout, the
+// source json can be written out to a file.  This file's name will be the
+// same as the Go source file's name, ending in '.json'.  This may be
+// useful when grabbing the JSON from a remote source and piping it into
+// json2struct via stdin.
 //
 // Errors are written to stderr
 package main
@@ -27,16 +40,20 @@ var (
 	pkg        string
 	input      string
 	output     string
+	structName string
 	writeJSON  bool
 	importJSON bool
+	isMap      bool
 	help       bool
 )
 
 func init() {
 	flag.BoolVar(&help, "help", false, "json2struct help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
-	flag.StringVar(&name, "name", "", "the name of the struct")
+	flag.StringVar(&name, "name", "", "the name of the type")
 	flag.StringVar(&name, "n", "", "the short flag for -name")
+	flag.StringVar(&structName, "structname", "", "the name of the struct; only used with -ismap")
+	flag.StringVar(&structName, "s", "", "the short flag for -structname")
 	flag.StringVar(&pkg, "pkg", "", "the name of the package")
 	flag.StringVar(&pkg, "p", "", "the short flag for -pkg")
 	flag.StringVar(&input, "input", "stdin", "the path to the input file; if not specified stdin is used")
@@ -47,6 +64,7 @@ func init() {
 	flag.BoolVar(&writeJSON, "w", false, "the short flag for -writejson")
 	flag.BoolVar(&importJSON, "import", false, "add import statement for encoding/json")
 	flag.BoolVar(&importJSON, "m", false, "the short flag for -import")
+	flag.BoolVar(&isMap, "ismap", false, "the provided json is a map type; not a struct type")
 }
 
 func main() {
@@ -74,10 +92,8 @@ func realMain() int {
 	}
 	var in, out, jsn *os.File
 	var err error
-	//var in io.Reader
-	//var out io.Writer
+	// set input
 	in = os.Stdin
-	// if it
 	if input != "stdin" {
 		in, err = os.Open(input)
 		if err != nil {
@@ -86,6 +102,7 @@ func realMain() int {
 		}
 	}
 	defer in.Close()
+	// set output
 	out = os.Stdout
 	if output != "stdout" {
 		//
@@ -104,7 +121,7 @@ func realMain() int {
 		}
 	}
 	defer out.Close()
-
+	// create the transmogrifier and configure it.
 	t := json2struct.NewTransmogrifier(name, in, out)
 	if jsn != nil {
 		t.SetWriteJSON(writeJSON)
@@ -114,6 +131,9 @@ func realMain() int {
 	if pkg != "" {
 		t.SetPkg(pkg)
 	}
+	t.SetIsMap(isMap)
+	t.SetStructName(structName)
+	// Generate the Go Types
 	err = t.Gen()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -144,16 +164,20 @@ or
 
 Options:
 
-flag             default   description
---------------   -------   ------------------------------------------
--n  -name                  The name of the struct: required.
--p  -pkg         main      The name of the package.
--i  -input       stdin     The JSON input source.
--o  -output      stdout    The Go srouce code output destination.
--w  -writejson   false     Write the source JSON to file; only valid
-                           when the output is a file.
--m  -import      false     Add import statement for 'encoding/json'.
--h  -help        false     Print the help text; 'help' is also valid.
+flag              default   description
+---------------   -------   ------------------------------------------
+-n  -name                   The name of the Type: required.
+-s  -structname             The name of the struct; only used in
+                            conjunction with -ismap.
+-p  -pkg          main      The name of the package.
+-i  -input        stdin     The JSON input source.
+-o  -output       stdout    The Go srouce code output destination.
+-w  -writejson    false     Write the source JSON to file; only valid
+                            when the output is a file.
+-m  -import       false     Add import statement for 'encoding/json'.
+    -ismap        false     Interpret the JSON as a map type instead
+                            of a struct type.
+-h  -help         false     Print the help text; 'help' is also valid.
 `
 	fmt.Println(helpText)
 }
