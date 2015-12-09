@@ -1,4 +1,4 @@
-package json2struct
+package json2go
 
 import (
 	"bytes"
