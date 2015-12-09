@@ -17,8 +17,8 @@ import (
 )
 
 type ShortWriteError struct {
-	n int
-	written int
+	n         int
+	written   int
 	operation string
 }
 
@@ -41,11 +41,11 @@ type Transmogrifier struct {
 	w          io.Writer
 	jw         io.Writer
 	name       string
-	structName   string
+	structName string
 	pkg        string
 	importJSON bool
 	writeJSON  bool
-	isMap bool
+	isMap      bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -134,6 +134,7 @@ func (t *Transmogrifier) Gen() error {
 	var res []byte
 	var err error
 	if t.isMap {
+		fmt.Println("genmaptype")
 		res, err = GenMapType(t.name, t.structName, buff.Bytes())
 	} else {
 		res, err = Gen(t.name, buff.Bytes())
@@ -258,6 +259,7 @@ func GenMapType(typeName, name string, data []byte) ([]byte, error) {
 	}
 	return buff.Bytes(), nil
 }
+
 // Gen unmarshals JSON-encoded data and returns its struct definition(s) using
 // the name as the struct's name.  If the JSON includes other maps, the field
 // will be an embedded struct, with that struct's definition also being

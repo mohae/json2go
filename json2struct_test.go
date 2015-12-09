@@ -184,6 +184,7 @@ var expectedMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {
 var expectedFmtMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
 var expectedMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
 var expectedFmtMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+
 func TestMapType(t *testing.T) {
 	def, err := GenMapType("Zone", "", mapType)
 	if err != nil {
@@ -215,6 +216,7 @@ var mapSliceType = []byte(`{
 
 var expectedMapSliceTypeStruct = "type Zone map[string][]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
 var expectedMapSliceTypeDomain = "type Zone map[string][]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+
 func TestMapSliceType(t *testing.T) {
 	def, err := GenMapType("Zone", "", mapSliceType)
 	if err != nil {
@@ -236,11 +238,11 @@ func TestMapSliceType(t *testing.T) {
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
-		name string
+		name       string
 		structName string
-		isMap bool
+		isMap      bool
 		importJSON bool
-		json	[]byte
+		json       []byte
 		expected   string
 	}{
 		{"", "Basic", "", false, false, basic, fmt.Sprintf("package main\n\n%s", expectedFmtBasic)},
@@ -255,7 +257,6 @@ func TestTransmogrify(t *testing.T) {
 		{"test", "zone", "domain", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedFmtMapTypeDomain)},
 		{"", "zone", "domain", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
 		{"test", "zone", "domain", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
-
 	}
 	var b bytes.Buffer
 	for i, test := range tests {
