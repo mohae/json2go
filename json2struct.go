@@ -44,6 +44,7 @@ type Transmogrifier struct {
 	pkg        string
 	importJSON bool
 	writeJSON  bool
+	isMap bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -75,6 +76,16 @@ func (t *Transmogrifier) SetWriteJSON(b bool) {
 	t.writeJSON = b
 }
 
+// SetIsMap set's whether or not the top level of the JSON is a map.  If
+// true, the type will be defined as type Name map[string][]Struct instead
+// of type Name struct {}.
+//
+// If it is a map, the key is an actual key and not the name of the struct.
+// The struct will be called Struct.
+func (t *Transmogrifier) SetIsMap(b bool) {
+	t.isMap = b
+}
+
 // Gen generates the struct definitions and outputs it to W.
 func (t *Transmogrifier) Gen() error {
 	var buff bytes.Buffer
@@ -104,7 +115,13 @@ func (t *Transmogrifier) Gen() error {
 			return ShortWriteError{n: buff.Len(), written: n, operation: "JSON to file"}
 		}
 	}
-	res, err := Gen(t.name, buff.Bytes())
+	var res []byte
+	var err error
+	if t.isMap {
+		res, err = GenMapType(t.name, "", buff.Bytes())
+	} else {
+		res, err = Gen(t.name, buff.Bytes())
+	}
 	if err != nil {
 		return err
 	}
@@ -161,6 +178,70 @@ func (s *structDef) Bytes() []byte {
 	return s.buff.Bytes()
 }
 
+// GenMapType unmarshals JSON-encoded data that is in the form of
+// map[string][]Type and returns both the type declaration and the struct
+// definition(s) for Type.
+func GenMapType(typeName, name string, data []byte) ([]byte, error) {
+	if len(typeName) == 0 {
+		return nil, fmt.Errorf("type name required")
+	}
+	typeName = strings.Title(typeName)
+
+	if len(name) == 0 {
+		name = "Struct"
+	} else {
+		name = strings.Title(name)
+	}
+	var def interface{}
+	err := json.Unmarshal(data, &def)
+	if err != nil {
+		return nil, err
+	}
+	switch d := def.(type) {
+	case []interface{}:
+		def = d[0]
+	}
+	// if it isn't a map, return an error as this only supports maps
+	if reflect.TypeOf(def).Kind() != reflect.Map {
+		return nil, fmt.Errorf("GenMapType error: expected a map, got %s", reflect.TypeOf(def).Kind())
+	}
+	// extract the element to use as the basis point for defining the struct
+	//
+	m := reflect.ValueOf(def)
+	keys := m.MapKeys()
+	val := m.MapIndex(keys[0])
+
+	var buff bytes.Buffer
+	// it it contains a slice, get an element from the slice
+	if val.Elem().Kind() == reflect.Slice {
+		buff.WriteString(fmt.Sprintf("type %s map[string][]%s\n\n", typeName, name))
+		val = val.Elem().Index(0)
+	} else {
+		buff.WriteString(fmt.Sprintf("type %s map[string]%s\n\n", typeName, name))
+	}
+	var wg sync.WaitGroup
+	q := queue.NewQ(2)
+	result := make(chan []byte)
+	// create first work item and add to the queue
+	s := newStructDef(name, val.Elem())
+	q.Enqueue(s)
+	// start the worker &  send initial work item
+	go func() {
+		defineStruct(q, result, &wg)
+	}()
+	// collect the results until the resCh is closed
+	var i int
+	for {
+		i++
+		val, ok := <-result
+		if !ok {
+			break
+		}
+		// TODO handle error/short read
+		buff.Write(val)
+	}
+	return buff.Bytes(), nil
+}
 // Gen unmarshals JSON-encoded data and returns its struct definition(s) using
 // the name as the struct's name.  If the JSON includes other maps, the field
 // will be an embedded struct, with that struct's definition also being
@@ -168,19 +249,19 @@ func (s *structDef) Bytes() []byte {
 // be returned.  If an error occurs while writing to the buffer, that error
 // will be returned.
 func Gen(name string, data []byte) ([]byte, error) {
-	if name == "" {
+	if len(name) == 0 {
 		return nil, fmt.Errorf("struct name required")
 	}
 	name = strings.Title(name)
 	// unmarshal the JSON-encoded data
-	var datum interface{}
-	err := json.Unmarshal(data, &datum)
+	var def interface{}
+	err := json.Unmarshal(data, &def)
 	if err != nil {
 		return nil, err
 	}
-	switch d := datum.(type) {
+	switch d := def.(type) {
 	case []interface{}:
-		datum = d[0]
+		def = d[0]
 	}
 	var buff bytes.Buffer
 	var wg sync.WaitGroup
@@ -188,7 +269,7 @@ func Gen(name string, data []byte) ([]byte, error) {
 	result := make(chan []byte)
 	// start the worker
 	// send initial work item
-	q.Enqueue(newStructDef(name, reflect.ValueOf(datum)))
+	q.Enqueue(newStructDef(name, reflect.ValueOf(def)))
 	go func() {
 		defineStruct(q, result, &wg)
 	}()

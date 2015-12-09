@@ -1,12 +1,12 @@
 package json2struct
 
 import (
-	"bufio"
-	"bytes"
-	"fmt"
+	_"bufio"
+	_"bytes"
+	_"fmt"
 	"testing"
 )
-
+/*
 var basic = []byte(`{
 	"foo": "fooer",
 	"bar": "bars",
@@ -170,7 +170,68 @@ func TestArrays(t *testing.T) {
 		t.Errorf("expected %q got %q", expectedSliceMap, string(def))
 	}
 }
+*/
+var mapType = []byte(`{
+  "example.com": {
+        "name": "example.com",
+        "type": "SOA",
+        "ttl":  300,
+        "content": "ns1.example.com. hostmaster.example.com. 1299682996 300 1800 604800 300"
+    }
+}`)
 
+var expectedMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+var expectedMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+func TestMapType(t *testing.T) {
+	def, err := GenMapType("Zone", "", mapType)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedMapTypeStruct {
+		t.Errorf("expected %q got %q", expectedMapTypeStruct, string(def))
+	}
+
+	def, err = GenMapType("Zone", "domain", mapType)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedMapTypeDomain {
+		t.Errorf("expected %q got %q", expectedMapTypeDomain, string(def))
+	}
+}
+
+var mapSliceType = []byte(`{
+  "example.com": [
+    {
+        "name": "example.com",
+        "type": "SOA",
+        "ttl":  300,
+        "content": "ns1.example.com. hostmaster.example.com. 1299682996 300 1800 604800 300"
+    }
+  ]
+}`)
+
+var expectedMapSliceTypeStruct = "type Zone map[string][]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+var expectedMapSliceTypeDomain = "type Zone map[string][]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+func TestMapSliceType(t *testing.T) {
+	def, err := GenMapType("Zone", "", mapSliceType)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedMapSliceTypeStruct {
+		t.Errorf("expected %q got %q", expectedMapSliceTypeStruct, string(def))
+	}
+
+	def, err = GenMapType("Zone", "domain", mapSliceType)
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if string(def) != expectedMapSliceTypeDomain {
+		t.Errorf("expected %q got %q", expectedMapSliceTypeDomain, string(def))
+	}
+}
+
+/*
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
@@ -286,3 +347,4 @@ func TestCleanFieldName(t *testing.T) {
 		}
 	}
 }
+*/
