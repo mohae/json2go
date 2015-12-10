@@ -1,33 +1,47 @@
-json2struct
-===========
+json2go
+=======
 
-json2struct is a CLI app that generates Go struct definitions from JSON.  Any objects in the source JSON will result in their own struct.  Any values that are null will have their type be `interface{}`; the type cannot be determined on null values.
+json2go is a CLI application that generates Go type definitions from JSON.  The type may be one of the following:
 
-By default, json2struct will read the JSON from `stdin` and write it to `stdout`.  Both a file source and file destination can be specified.  When the output destination is a file, the JSON used to generate the struct definition can also be written out to the same destination; the filename will be the same as the struct definition(s) except it will have the `.json` extension, instead fo the `.go` extension.
+    * struct
+    * map[string]T
+    * map[string][]T
 
-The default package name for the generated Go source is `main`, this can be overridden using the `-pkg` or `-p` flags.
+By default, a struct will be generated.
 
-The generated source can include the import statement for `encoding/json` by using the `-import` or `-m` flag.
+Any objects in the source JSON will result in their own struct.  Any values that are null will have their type be `interface{}`; the type cannot be determined on null values.
+
+If the source JSON is an array of objects, the first element in the array will be used to generate the definition(s).  Any objects within the JSON will result in additional embedded struct types.
+
+Keys with underscores, `_`, are converted to MixedCase.  Keys starting with characters that are invalid for Go variable names have those characters discarded, unless they are a number, `0-9`, which are converted to their word equivalents. All fields are exported and the JSON field tag for the field is generated using the original JSON key value.
+
+By default, json2go will read the JSON from `stdin` and write it to `stdout`.  Both a source file and destination file can be specified.  When the output destination is a file, the JSON used to generate the struct definition can also be written to a file.  The filename will be the same as the Go output file except it will have the `.json` extension.
+
+The default package name for the generated Go source is `main`, this can be overridden using either the `-pkg` or `-p` flags.
+
+The generated source can include the import statement for `encoding/json` by using either the `-addimport` or `-a` flag.
 
 ## Flags
 
     Flag | Short | Default | Description  
     :---|:---|:---|:---  
-    -name | -n |   | The name of the struct: required.  
-    -pkg | -p | main | The name of the package.  
-    -input | -i | stdin | The JSON input source.  
-    -output | -o | stdout | The Go source code output destination.  
-    -writejson | -w | false | Write the JSON to file; only valid when the output is a file.  
-    -import | -i | false | Add import statement for 'encoding/json'.  
+    -name | -n |   | The name of the type: required.
+    -input | -i | stdin | The JSON input source.
+    -output | -o | stdout | The Go srouce code output destination.
+    -writejson | -w | false | Write the source JSON to file; only valid when the output is a file.
+    -pkg | -p | main | The name of the package.
+    -addimport | -a | false | Add import statement for 'encoding/json'.
+    -maptype | -m false | Interpret the JSON as a map type instead of a struct type.
+    -structname | -s | Struct | The name of the struct; only used in conjunction with -maptype.
     -help | -h | false | Print the help text; 'help' is also valid.
 
 ## Example 1
 
-This example gets the JSON from a remote source and pipes it into `json2struct`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.
+This example gets the JSON from a remote source and pipes it into `json2go`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.
 
 ### Command
 
-    curl -s https://api.github.com/repos/mohae/json2struct | json2struct -o github.go -w -m -n Github
+    curl -s https://api.github.com/repos/mohae/json2go | json2go -o github.go -w -a -n repo
 
 #### Generated `github.go`
 
@@ -38,7 +52,7 @@ import (
 	"encoding/json"
 )
 
-type Github struct {
+type Repo struct {
 	ArchiveURL       string      `json:"archive_url"`
 	AssigneesURL     string      `json:"assignees_url"`
 	BlobsURL         string      `json:"blobs_url"`
@@ -68,7 +82,7 @@ type Github struct {
 	HasIssues        bool        `json:"has_issues"`
 	HasPages         bool        `json:"has_pages"`
 	HasWiki          bool        `json:"has_wiki"`
-	Homepage         interface{} `json:"homepage"`
+	Homepage         string      `json:"homepage"`
 	HooksURL         string      `json:"hooks_url"`
 	HTMLURL          string      `json:"html_url"`
 	ID               int         `json:"id"`
@@ -129,7 +143,6 @@ type Owner struct {
 	Type              string `json:"type"`
 	URL               string `json:"url"`
 }
-
 ```
 
 #### Source JSON written to `github.json`
@@ -137,8 +150,8 @@ type Owner struct {
 ```
 {
   "id": 47099645,
-  "name": "json2struct",
-  "full_name": "mohae/json2struct",
+  "name": "json2go",
+  "full_name": "mohae/json2go",
   "owner": {
     "login": "mohae",
     "id": 2699987,
@@ -159,54 +172,54 @@ type Owner struct {
     "site_admin": false
   },
   "private": false,
-  "html_url": "https://github.com/mohae/json2struct",
-  "description": "generate Go struct definitions from JSON",
+  "html_url": "https://github.com/mohae/json2go",
+  "description": "Generate Go struct definitions from JSON",
   "fork": false,
-  "url": "https://api.github.com/repos/mohae/json2struct",
-  "forks_url": "https://api.github.com/repos/mohae/json2struct/forks",
-  "keys_url": "https://api.github.com/repos/mohae/json2struct/keys{/key_id}",
-  "collaborators_url": "https://api.github.com/repos/mohae/json2struct/collaborators{/collaborator}",
-  "teams_url": "https://api.github.com/repos/mohae/json2struct/teams",
-  "hooks_url": "https://api.github.com/repos/mohae/json2struct/hooks",
-  "issue_events_url": "https://api.github.com/repos/mohae/json2struct/issues/events{/number}",
-  "events_url": "https://api.github.com/repos/mohae/json2struct/events",
-  "assignees_url": "https://api.github.com/repos/mohae/json2struct/assignees{/user}",
-  "branches_url": "https://api.github.com/repos/mohae/json2struct/branches{/branch}",
-  "tags_url": "https://api.github.com/repos/mohae/json2struct/tags",
-  "blobs_url": "https://api.github.com/repos/mohae/json2struct/git/blobs{/sha}",
-  "git_tags_url": "https://api.github.com/repos/mohae/json2struct/git/tags{/sha}",
-  "git_refs_url": "https://api.github.com/repos/mohae/json2struct/git/refs{/sha}",
-  "trees_url": "https://api.github.com/repos/mohae/json2struct/git/trees{/sha}",
-  "statuses_url": "https://api.github.com/repos/mohae/json2struct/statuses/{sha}",
-  "languages_url": "https://api.github.com/repos/mohae/json2struct/languages",
-  "stargazers_url": "https://api.github.com/repos/mohae/json2struct/stargazers",
-  "contributors_url": "https://api.github.com/repos/mohae/json2struct/contributors",
-  "subscribers_url": "https://api.github.com/repos/mohae/json2struct/subscribers",
-  "subscription_url": "https://api.github.com/repos/mohae/json2struct/subscription",
-  "commits_url": "https://api.github.com/repos/mohae/json2struct/commits{/sha}",
-  "git_commits_url": "https://api.github.com/repos/mohae/json2struct/git/commits{/sha}",
-  "comments_url": "https://api.github.com/repos/mohae/json2struct/comments{/number}",
-  "issue_comment_url": "https://api.github.com/repos/mohae/json2struct/issues/comments{/number}",
-  "contents_url": "https://api.github.com/repos/mohae/json2struct/contents/{+path}",
-  "compare_url": "https://api.github.com/repos/mohae/json2struct/compare/{base}...{head}",
-  "merges_url": "https://api.github.com/repos/mohae/json2struct/merges",
-  "archive_url": "https://api.github.com/repos/mohae/json2struct/{archive_format}{/ref}",
-  "downloads_url": "https://api.github.com/repos/mohae/json2struct/downloads",
-  "issues_url": "https://api.github.com/repos/mohae/json2struct/issues{/number}",
-  "pulls_url": "https://api.github.com/repos/mohae/json2struct/pulls{/number}",
-  "milestones_url": "https://api.github.com/repos/mohae/json2struct/milestones{/number}",
-  "notifications_url": "https://api.github.com/repos/mohae/json2struct/notifications{?since,all,participating}",
-  "labels_url": "https://api.github.com/repos/mohae/json2struct/labels{/name}",
-  "releases_url": "https://api.github.com/repos/mohae/json2struct/releases{/id}",
+  "url": "https://api.github.com/repos/mohae/json2go",
+  "forks_url": "https://api.github.com/repos/mohae/json2go/forks",
+  "keys_url": "https://api.github.com/repos/mohae/json2go/keys{/key_id}",
+  "collaborators_url": "https://api.github.com/repos/mohae/json2go/collaborators{/collaborator}",
+  "teams_url": "https://api.github.com/repos/mohae/json2go/teams",
+  "hooks_url": "https://api.github.com/repos/mohae/json2go/hooks",
+  "issue_events_url": "https://api.github.com/repos/mohae/json2go/issues/events{/number}",
+  "events_url": "https://api.github.com/repos/mohae/json2go/events",
+  "assignees_url": "https://api.github.com/repos/mohae/json2go/assignees{/user}",
+  "branches_url": "https://api.github.com/repos/mohae/json2go/branches{/branch}",
+  "tags_url": "https://api.github.com/repos/mohae/json2go/tags",
+  "blobs_url": "https://api.github.com/repos/mohae/json2go/git/blobs{/sha}",
+  "git_tags_url": "https://api.github.com/repos/mohae/json2go/git/tags{/sha}",
+  "git_refs_url": "https://api.github.com/repos/mohae/json2go/git/refs{/sha}",
+  "trees_url": "https://api.github.com/repos/mohae/json2go/git/trees{/sha}",
+  "statuses_url": "https://api.github.com/repos/mohae/json2go/statuses/{sha}",
+  "languages_url": "https://api.github.com/repos/mohae/json2go/languages",
+  "stargazers_url": "https://api.github.com/repos/mohae/json2go/stargazers",
+  "contributors_url": "https://api.github.com/repos/mohae/json2go/contributors",
+  "subscribers_url": "https://api.github.com/repos/mohae/json2go/subscribers",
+  "subscription_url": "https://api.github.com/repos/mohae/json2go/subscription",
+  "commits_url": "https://api.github.com/repos/mohae/json2go/commits{/sha}",
+  "git_commits_url": "https://api.github.com/repos/mohae/json2go/git/commits{/sha}",
+  "comments_url": "https://api.github.com/repos/mohae/json2go/comments{/number}",
+  "issue_comment_url": "https://api.github.com/repos/mohae/json2go/issues/comments{/number}",
+  "contents_url": "https://api.github.com/repos/mohae/json2go/contents/{+path}",
+  "compare_url": "https://api.github.com/repos/mohae/json2go/compare/{base}...{head}",
+  "merges_url": "https://api.github.com/repos/mohae/json2go/merges",
+  "archive_url": "https://api.github.com/repos/mohae/json2go/{archive_format}{/ref}",
+  "downloads_url": "https://api.github.com/repos/mohae/json2go/downloads",
+  "issues_url": "https://api.github.com/repos/mohae/json2go/issues{/number}",
+  "pulls_url": "https://api.github.com/repos/mohae/json2go/pulls{/number}",
+  "milestones_url": "https://api.github.com/repos/mohae/json2go/milestones{/number}",
+  "notifications_url": "https://api.github.com/repos/mohae/json2go/notifications{?since,all,participating}",
+  "labels_url": "https://api.github.com/repos/mohae/json2go/labels{/name}",
+  "releases_url": "https://api.github.com/repos/mohae/json2go/releases{/id}",
   "created_at": "2015-11-30T06:31:18Z",
-  "updated_at": "2015-11-30T06:32:11Z",
-  "pushed_at": "2015-11-30T06:32:10Z",
-  "git_url": "git://github.com/mohae/json2struct.git",
-  "ssh_url": "git@github.com:mohae/json2struct.git",
-  "clone_url": "https://github.com/mohae/json2struct.git",
-  "svn_url": "https://github.com/mohae/json2struct",
-  "homepage": null,
-  "size": 13,
+  "updated_at": "2015-12-09T21:19:26Z",
+  "pushed_at": "2015-12-09T21:18:44Z",
+  "git_url": "git://github.com/mohae/json2go.git",
+  "ssh_url": "git@github.com:mohae/json2go.git",
+  "clone_url": "https://github.com/mohae/json2go.git",
+  "svn_url": "https://github.com/mohae/json2go",
+  "homepage": "",
+  "size": 1198,
   "stargazers_count": 0,
   "watchers_count": 0,
   "language": "Go",
@@ -224,10 +237,49 @@ type Owner struct {
   "network_count": 0,
   "subscribers_count": 1
 }
+```
+### Example 2:
+
+This example results in a map[string]T
+
+### Command:
+
+    json2struct -i hockey.json -o hockey.go -n team -s player
+
+#### hockey.json
 
 ```
+{
+  "Blackhawks": [
+    {
+      "name": "Tony Esposito",
+      "number": 35,
+      "position": "Goal Tender"
+    },
+    {
+      "name": "Stan Mikita",
+      "number": 21,
+      "position": "Center"
+    }
+  ]
+}
+```
 
-## Example 2:
+#### Generated hockey.go  
+
+```
+package main
+
+type Team map[string][]Player
+
+type Player struct {
+	Name     string `json:"name"`
+	Number   int    `json:"number"`
+	Position string `json:"position"`
+}
+```
+
+## Example 3:
 
 This example uses json of much greater complexity in a local file.
 
