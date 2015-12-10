@@ -80,11 +80,19 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 // when MapType is set to true.  If MapType is set to true but typeName is
 // not set, Struct will be used as the type name.
 func (t *Transmogrifier) SetStructName(s string) {
+	// if empty, do nothing
+	if len(s) == 0 {
+		return
+	}
 	t.structName = strings.Title(s)
 }
 
 // SetPkg set's the package name to s.  The package name will be lowercased.
 func (t *Transmogrifier) SetPkg(s string) {
+	// if empty, do nothing
+	if len(s) == 0 {
+		return
+	}
 	t.pkg = strings.ToLower(s)
 }
 
