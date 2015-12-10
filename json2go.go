@@ -42,7 +42,6 @@ type Transmogrifier struct {
 	jw         io.Writer
 	name       string
 	structName string
-	fieldName  string
 	pkg        string
 	// ImportJSON is used to control whether or not an import statement
 	// for encoding/json should be generated.
@@ -60,20 +59,7 @@ type Transmogrifier struct {
 	// using SetStructName.  If it isn't set, T will be named Struct.
 	//
 	// If false, a struct definition will be generated for the type.
-	//
-	// This setting is mutually exclusive with the KeyAsField setting.
-	// If true, this will take precedence over the KeyAsField setting.
 	MapType bool
-	// KeyAsField is used for JSON data that is map[string]interface{},
-	// map[string][]interface{}, or a slice of either of the two. If
-	// true, a struct definition will be generated and they map key
-	// will be a field value.  SetFieldName should also be called to
-	// set the name of the field that will contain the key.  If the
-	// field name is not set, Field will be used as the field name.
-	//
-	// This setting is mutually exclusive with MapType and will be ignored
-	// if MapType == true.
-	KeyAsField bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -86,7 +72,7 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 	} else {
 		name = strings.Title(name)
 	}
-	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", fieldName: "Field", pkg: "main"}
+	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", pkg: "main"}
 }
 
 // SetStructName sets the name of the type derived from the interface{}
@@ -95,12 +81,6 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 // not set, Struct will be used as the type name.
 func (t *Transmogrifier) SetStructName(s string) {
 	t.structName = strings.Title(s)
-}
-
-// SetFieldName sets the name of the map key field in the generated struct
-// definition.  This only applies when KeyAsField is set to true.
-func (t *Transmogrifier) SetFieldName(s string) {
-	t.fieldName = strings.Title(s)
 }
 
 // SetPkg set's the package name to s.  The package name will be lowercased.
