@@ -35,6 +35,19 @@ The generated source can include the import statement for `encoding/json` by usi
     -structname | -s | Struct | The name of the struct; only used in conjunction with -maptype.
     -help | -h | false | Print the help text; 'help' is also valid.
 
+##  Usage:
+
+Compile:
+
+    go get github.com/mohae/json2go
+    cd github.com/mohae/json2go/cmd/json2go
+    go build -o $GOPATH/bin/json2go
+
+Verify:
+  
+    json2go -h  
+    
+
 ## Example 1
 
 This example gets the JSON from a remote source and pipes it into `json2go`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.
