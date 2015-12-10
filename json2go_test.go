@@ -226,7 +226,7 @@ func TestMapType(t *testing.T) {
 		r := bytes.NewReader(mapType)
 		var buff bytes.Buffer
 		calvin := NewTransmogrifier("Zone", r, &buff)
-		calvin.IsMap = true
+		calvin.MapType = true
 		if test.structName != "" {
 			calvin.SetStructName(test.structName)
 		}
@@ -268,7 +268,7 @@ func TestMapSliceType(t *testing.T) {
 		r := bytes.NewReader(mapSliceType)
 		var buff bytes.Buffer
 		calvin := NewTransmogrifier("Zone", r, &buff)
-		calvin.IsMap = true
+		calvin.MapType = true
 		if test.structName != "" {
 			calvin.SetStructName(test.structName)
 		}
@@ -287,7 +287,7 @@ func TestTransmogrify(t *testing.T) {
 		pkg        string
 		name       string
 		structName string
-		isMap      bool
+		MapType    bool
 		importJSON bool
 		json       []byte
 		expected   string
@@ -315,8 +315,8 @@ func TestTransmogrify(t *testing.T) {
 			calvin.SetPkg(test.pkg)
 		}
 		calvin.ImportJSON = test.importJSON
-		if test.isMap {
-			calvin.IsMap = test.isMap
+		if test.MapType {
+			calvin.MapType = test.MapType
 			if test.structName != "" {
 				calvin.SetStructName(test.structName)
 			}

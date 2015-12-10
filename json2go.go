@@ -52,19 +52,27 @@ type Transmogrifier struct {
 	// with '\t', tab, as the indent.  This only applies when the output
 	// destination is not stdout.
 	WriteJSON bool
-	// IsMap is used to determine whether the type should be a struct or
-	// either a map[string]T or map[string][]T type.  If false, the
-	// generated type will be a struct.  If true, the name of T should
-	// be set using SetStructName.  If it isn't set, T will be named
-	// Struct.
-	IsMap bool
-	// KeyAsField is used to determine if the key of the top-level map
-	// should be a struct field or the name of the struct.  This
-	// setting is mutually exclusive with IsMap and will be ignored if
-	// IsMap == true.
+	// MapType is used for JSON data that is map[string]interface{},
+	// map[string][]interface{}, or a slice of either of the two. If
+	// true, instead of generating a struct definition for the type, the
+	// type will be either map[string]T or map[string][]T.  When the
+	// created type is a map, the name of the struct T should be set
+	// using SetStructName.  If it isn't set, T will be named Struct.
 	//
-	// If true, the name of the field should be set using SetFieldName,
-	// otherwise Field will be the name used for that field.
+	// If false, a struct definition will be generated for the type.
+	//
+	// This setting is mutually exclusive with the KeyAsField setting.
+	// If true, this will take precedence over the KeyAsField setting.
+	MapType bool
+	// KeyAsField is used for JSON data that is map[string]interface{},
+	// map[string][]interface{}, or a slice of either of the two. If
+	// true, a struct definition will be generated and they map key
+	// will be a field value.  SetFieldName should also be called to
+	// set the name of the field that will contain the key.  If the
+	// field name is not set, Field will be used as the field name.
+	//
+	// This setting is mutually exclusive with MapType and will be ignored
+	// if MapType == true.
 	KeyAsField bool
 }
 
@@ -83,7 +91,7 @@ func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
 
 // SetStructName sets the name of the type derived from the interface{}
 // portion of JSON that is of type map[string]interface{}.  This is used
-// when isMap is set to true.  If isMap is set to true but typeName is
+// when MapType is set to true.  If MapType is set to true but typeName is
 // not set, Struct will be used as the type name.
 func (t *Transmogrifier) SetStructName(s string) {
 	t.structName = strings.Title(s)
@@ -168,9 +176,9 @@ func (t *Transmogrifier) Gen() error {
 	// create the work queue and the result chan
 	q := queue.NewQ(2)
 	result := make(chan []byte)
-	// if IsMap, process as a map type
+	// if MapType, process as a map type
 	// and enqueue the first item
-	if t.IsMap {
+	if t.MapType {
 		// if it isn't a map, return an error as this only supports maps
 		if reflect.TypeOf(def).Kind() != reflect.Map {
 			return fmt.Errorf("GenMapType error: expected a map, got %s", reflect.TypeOf(def).Kind())
