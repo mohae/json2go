@@ -20,9 +20,9 @@ Keys with underscores, `_`, are converted to MixedCase.  Keys starting with char
 
 If a field's value is null, the field's type will be `interface{}`, as that field's type is not determinable.
 
-The CLI is in the `cmd/json2struct` subdirectory.  See that [README](https://github.com/mohae/json2struct/tree/master/cmd/json2struct) for more info and examples.
+The CLI is in the `cmd/json2go` subdirectory.  See that [README](https://github.com/mohae/json2go/tree/master/cmd/json2go) for more info and examples.
 
-## Example:
+## Examples:
 
 __map[string][]T__
 
