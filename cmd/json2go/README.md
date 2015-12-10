@@ -15,9 +15,9 @@ If the source JSON is an array of objects, the first element in the array will b
 
 Keys with underscores, `_`, are converted to MixedCase.  Keys starting with characters that are invalid for Go variable names have those characters discarded, unless they are a number, `0-9`, which are converted to their word equivalents. All fields are exported and the JSON field tag for the field is generated using the original JSON key value.
 
-By default, json2go will read the JSON from `stdin` and write it to `stdout`.  Both a source file and destination file can be specified.  When the output destination is a file, the JSON used to generate the struct definition can also be written to a file.  The filename will be the same as the Go output file except it will have the `.json` extension.
+By default, json2go will read the JSON from `stdin` and write the output to `stdout`.  Both a source file and destination file can be specified.  When the output destination is a file, the JSON used to generate the struct definition can also be written to a file by using either the `-writejson` or `-w` flag.  The filename will be the same as the Go output file except it will have the `.json` extension.
 
-The default package name for the generated Go source is `main`, this can be overridden using either the `-pkg` or `-p` flags.
+The default package name for the generated Go source is `main`, this can be overridden using either the `-pkg` or `-p` flag.
 
 The generated source can include the import statement for `encoding/json` by using either the `-addimport` or `-a` flag.
 
@@ -27,7 +27,7 @@ The generated source can include the import statement for `encoding/json` by usi
     :---|:---|:---|:---  
     -name | -n |   | The name of the type: required.
     -input | -i | stdin | The JSON input source.
-    -output | -o | stdout | The Go srouce code output destination.
+    -output | -o | stdout | The generated Go source code output destination.
     -writejson | -w | false | Write the source JSON to file; only valid when the output is a file.
     -pkg | -p | main | The name of the package.
     -addimport | -a | false | Add import statement for 'encoding/json'.
@@ -50,7 +50,7 @@ Verify:
 
 ## Example 1
 
-This example gets the JSON from a remote source and pipes it into `json2go`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.
+This example gets the JSON from a remote source and pipes it into `json2go`; generating both the Go source code file and a file with the JSON used to generate the struct definitions.  The import statement is included in the output.
 
 ### Command
 
@@ -257,7 +257,7 @@ This example results in a map[string]T
 
 ### Command:
 
-    json2struct -i -m hockey.json -o hockey.go -n team -s player
+    json2struct -m -i hockey.json -o hockey.go -n team -s player
 
 #### hockey.json
 
