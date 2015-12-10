@@ -24,7 +24,7 @@ The CLI is in the `cmd/json2struct` subdirectory.  See that [README](https://git
 
 ## Example:
 
-### map[string][]T
+__map[string][]T__
 
 Source JSON:
 
@@ -59,7 +59,7 @@ type Player struct {
 }
 ```
 
-### struct
+__struct__
 
 Source JSON from http://json.org/example.html:
 
