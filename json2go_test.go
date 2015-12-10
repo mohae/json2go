@@ -1,7 +1,6 @@
 package json2go
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"testing"
@@ -14,16 +13,20 @@ var basic = []byte(`{
 	"baz": 42.1,
 	"foo_bar": "frood"
 }`)
-var expectedBasic = "type Basic struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
-var expectedFmtBasic = "type Basic struct {\n\tBar    string  `json:\"bar\"`\n\tBaz    float64 `json:\"baz\"`\n\tBiz    int     `json:\"biz\"`\n\tFoo    string  `json:\"foo\"`\n\tFooBar string  `json:\"foo_bar\"`\n}\n"
+var expectedBasic = "type Basic struct {\n\tBar    string  `json:\"bar\"`\n\tBaz    float64 `json:\"baz\"`\n\tBiz    int     `json:\"biz\"`\n\tFoo    string  `json:\"foo\"`\n\tFooBar string  `json:\"foo_bar\"`\n}\n"
+var expectedBasicPkg = fmt.Sprintf("package main\n\n%s", expectedBasic)
 
 func TestBasicStruct(t *testing.T) {
-	def, err := Gen("basic", basic)
+	// create reader
+	r := bytes.NewReader(basic)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("basic", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedBasic {
-		t.Errorf("expected %q got %q", expectedBasic, string(def))
+	if buff.String() != expectedBasicPkg {
+		t.Errorf("expected %q got %q", expectedBasicPkg, buff.String())
 	}
 }
 
@@ -52,15 +55,20 @@ var intermediate = []byte(`{
 	],
 	"date": "Fri Jan 23 13:02:46 +0000 2015"
 }`)
-var expectedIntermediate = "type Intermediate struct {\n\tBools []bool `json:\"bools\"`\n\tBot bool `json:\"bot\"`\n\tDate string `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tID int `json:\"id\"`\n\tInts []int `json:\"ints\"`\n\tName string `json:\"name\"`\n\tQuotes []string `json:\"quotes\"`\n}\n\n"
+var expectedIntermediate = "type Intermediate struct {\n\tBools  []bool    `json:\"bools\"`\n\tBot    bool      `json:\"bot\"`\n\tDate   string    `json:\"date\"`\n\tFloats []float64 `json:\"floats\"`\n\tID     int       `json:\"id\"`\n\tInts   []int     `json:\"ints\"`\n\tName   string    `json:\"name\"`\n\tQuotes []string  `json:\"quotes\"`\n}\n"
+var expectedIntermediatePkg = fmt.Sprintf("package main\n\n%s", expectedIntermediate)
 
 func TestIntermediateStruct(t *testing.T) {
-	def, err := Gen("Intermediate", intermediate)
+	// create reader
+	r := bytes.NewReader(intermediate)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("intermediate", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedIntermediate {
-		t.Errorf("expected %q got %q", expectedIntermediate, string(def))
+	if buff.String() != expectedIntermediatePkg {
+		t.Errorf("expected %q got %q", expectedIntermediatePkg, buff.String())
 	}
 }
 
@@ -94,15 +102,20 @@ var widget = []byte(`{
 	}
 }`)
 
-var expectedWidget = "type TestW struct {\n\tWidget `json:\"widget\"`\n}\n\ntype Widget struct {\n\tDebug string `json:\"debug\"`\n\tImage `json:\"image\"`\n\tText `json:\"text\"`\n\tWindow `json:\"window\"`\n}\n\ntype Image struct {\n\tAlignment string `json:\"alignment\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tSrc string `json:\"src\"`\n\tVOffset int `json:\"vOffset\"`\n}\n\ntype Text struct {\n\tAlignment string `json:\"alignment\"`\n\tData string `json:\"data\"`\n\tHOffset int `json:\"hOffset\"`\n\tName string `json:\"name\"`\n\tOnMouseUp string `json:\"onMouseUp\"`\n\tSize int `json:\"size\"`\n\tStyle string `json:\"style\"`\n\tVOffset int `json:\"vOffset\"`\n}\n\ntype Window struct {\n\tHeight int `json:\"height\"`\n\tName string `json:\"name\"`\n\tTitle string `json:\"title\"`\n\tWidth int `json:\"width\"`\n}\n\n"
+var expectedWidget = "type TestW struct {\n\tWidget `json:\"widget\"`\n}\n\ntype Widget struct {\n\tDebug  string `json:\"debug\"`\n\tImage  `json:\"image\"`\n\tText   `json:\"text\"`\n\tWindow `json:\"window\"`\n}\n\ntype Image struct {\n\tAlignment string `json:\"alignment\"`\n\tHOffset   int    `json:\"hOffset\"`\n\tName      string `json:\"name\"`\n\tSrc       string `json:\"src\"`\n\tVOffset   int    `json:\"vOffset\"`\n}\n\ntype Text struct {\n\tAlignment string `json:\"alignment\"`\n\tData      string `json:\"data\"`\n\tHOffset   int    `json:\"hOffset\"`\n\tName      string `json:\"name\"`\n\tOnMouseUp string `json:\"onMouseUp\"`\n\tSize      int    `json:\"size\"`\n\tStyle     string `json:\"style\"`\n\tVOffset   int    `json:\"vOffset\"`\n}\n\ntype Window struct {\n\tHeight int    `json:\"height\"`\n\tName   string `json:\"name\"`\n\tTitle  string `json:\"title\"`\n\tWidth  int    `json:\"width\"`\n}\n"
+var expectedWidgetPkg = fmt.Sprintf("package main\n\n%s", expectedWidget)
 
 func TestWidget(t *testing.T) {
-	s, err := Gen("TestW", widget)
+	// create reader
+	r := bytes.NewReader(widget)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("TestW", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
-		t.Errorf("unexpected error %q", err)
+		t.Errorf("unexpected error: %s", err)
 	}
-	if string(s) != expectedWidget {
-		t.Errorf("expected:\n%q, got:\n%q", expectedWidget, string(s))
+	if buff.String() != expectedWidgetPkg {
+		t.Errorf("expected %q got %q", expectedWidgetPkg, buff.String())
 	}
 }
 
@@ -114,15 +127,20 @@ var wnull = []byte(`{
 	"foo_bar": "frood"
 }`)
 
-var expectedWNull = "type WNull struct {\n\tBar interface{} `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBiz int `json:\"biz\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedWNull = "type WNull struct {\n\tBar    interface{} `json:\"bar\"`\n\tBaz    float64     `json:\"baz\"`\n\tBiz    int         `json:\"biz\"`\n\tFoo    string      `json:\"foo\"`\n\tFooBar string      `json:\"foo_bar\"`\n}\n"
+var expectedWNullPkg = fmt.Sprintf("package main\n\n%s", expectedWNull)
 
 func TestWNull(t *testing.T) {
-	def, err := Gen("WNull", wnull)
+	// create reader
+	r := bytes.NewReader(wnull)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("WNull", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedWNull {
-		t.Errorf("expected %q got %q", expectedWNull, string(def))
+	if buff.String() != expectedWNullPkg {
+		t.Errorf("expected %q got %q", expectedWNullPkg, buff.String())
 	}
 }
 
@@ -134,15 +152,20 @@ var basicArr = []byte(`[{
 	"foo_bar": "frood"
 }]`)
 
-var expectedBasicArr = "type BasicArr struct {\n\tBar string `json:\"bar\"`\n\tBaz float64 `json:\"baz\"`\n\tBizID int `json:\"biz_id\"`\n\tFoo string `json:\"foo\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedBasicArr = "type BasicArr struct {\n\tBar    string  `json:\"bar\"`\n\tBaz    float64 `json:\"baz\"`\n\tBizID  int     `json:\"biz_id\"`\n\tFoo    string  `json:\"foo\"`\n\tFooBar string  `json:\"foo_bar\"`\n}\n"
+var expectedBasicArrPkg = fmt.Sprintf("package main\n\n%s", expectedBasicArr)
 
 func TestBasicArr(t *testing.T) {
-	def, err := Gen("BasicArr", basicArr)
+	// create reader
+	r := bytes.NewReader(basicArr)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("BasicArr", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedBasicArr {
-		t.Errorf("expected %q got %q", expectedBasicArr, string(def))
+	if buff.String() != expectedBasicArrPkg {
+		t.Errorf("expected %q got %q", expectedBasicArrPkg, buff.String())
 	}
 }
 
@@ -159,15 +182,20 @@ var sliceMap = []byte(`{
 	]
 }`)
 
-var expectedSliceMap = "type SliceMap struct {\n\tFoos []Foo `json:\"foo\"`\n}\n\ntype Foo struct {\n\tBar string `json:\"bar\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n\n"
+var expectedSliceMap = "type SliceMap struct {\n\tFoos []Foo `json:\"foo\"`\n}\n\ntype Foo struct {\n\tBar    string `json:\"bar\"`\n\tFooBar string `json:\"foo_bar\"`\n}\n"
+var expectedSliceMapPkg = fmt.Sprintf("package main\n\n%s", expectedSliceMap)
 
 func TestArrays(t *testing.T) {
-	def, err := Gen("SliceMap", sliceMap)
+	// create reader
+	r := bytes.NewReader(sliceMap)
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("SliceMap", r, &buff)
+	err := calvin.Gen()
 	if err != nil {
-		t.Errorf("unexpected error: %s", sliceMap)
+		t.Errorf("unexpected error: %s", err)
 	}
-	if string(def) != expectedSliceMap {
-		t.Errorf("expected %q got %q", expectedSliceMap, string(def))
+	if buff.String() != expectedSliceMapPkg {
+		t.Errorf("expected %q got %q", expectedSliceMapPkg, buff.String())
 	}
 }
 
@@ -180,26 +208,35 @@ var mapType = []byte(`{
     }
 }`)
 
-var expectedMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
-var expectedFmtMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
-var expectedMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
-var expectedFmtMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+var expectedMapTypeStruct = "type Zone map[string]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+var expectedMapTypeStructPkg = fmt.Sprintf("package main\n\n%s", expectedMapTypeStruct)
+var expectedMapTypeDomain = "type Zone map[string]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+var expectedMapTypeDomainPkg = fmt.Sprintf("package main\n\n%s", expectedMapTypeDomain)
 
 func TestMapType(t *testing.T) {
-	def, err := GenMapType("Zone", "", mapType)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	// create reader
+	tests := []struct {
+		structName string
+		expected   string
+	}{
+		{"", expectedMapTypeStructPkg},
+		{"domain", expectedMapTypeDomainPkg},
 	}
-	if string(def) != expectedMapTypeStruct {
-		t.Errorf("expected %q got %q", expectedMapTypeStruct, string(def))
-	}
-
-	def, err = GenMapType("Zone", "domain", mapType)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if string(def) != expectedMapTypeDomain {
-		t.Errorf("expected %q got %q", expectedMapTypeDomain, string(def))
+	for _, test := range tests {
+		r := bytes.NewReader(mapType)
+		var buff bytes.Buffer
+		calvin := NewTransmogrifier("Zone", r, &buff)
+		calvin.IsMap = true
+		if test.structName != "" {
+			calvin.SetStructName(test.structName)
+		}
+		err := calvin.Gen()
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+		}
+		if buff.String() != test.expected {
+			t.Errorf("expected %q got %q", test.expected, buff.String())
+		}
 	}
 }
 
@@ -213,25 +250,35 @@ var mapSliceType = []byte(`{
     }
   ]
 }`)
-
-var expectedMapSliceTypeStruct = "type Zone map[string][]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
-var expectedMapSliceTypeDomain = "type Zone map[string][]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName string `json:\"name\"`\n\tTTL int `json:\"ttl\"`\n\tType string `json:\"type\"`\n}\n\n"
+var expectedMapSliceTypeStruct = "type Zone map[string][]Struct\n\ntype Struct struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+var expectedMapSliceTypeStructkg = fmt.Sprintf("package main\n\n%s", expectedMapSliceTypeStruct)
+var expectedMapSliceTypeDomain = "type Zone map[string][]Domain\n\ntype Domain struct {\n\tContent string `json:\"content\"`\n\tName    string `json:\"name\"`\n\tTTL     int    `json:\"ttl\"`\n\tType    string `json:\"type\"`\n}\n"
+var expectedMapSliceTypeDomainPkg = fmt.Sprintf("package main\n\n%s", expectedMapSliceTypeDomain)
 
 func TestMapSliceType(t *testing.T) {
-	def, err := GenMapType("Zone", "", mapSliceType)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
+	// create reader
+	tests := []struct {
+		structName string
+		expected   string
+	}{
+		{"", expectedMapSliceTypeStructkg},
+		{"domain", expectedMapSliceTypeDomainPkg},
 	}
-	if string(def) != expectedMapSliceTypeStruct {
-		t.Errorf("expected %q got %q", expectedMapSliceTypeStruct, string(def))
-	}
-
-	def, err = GenMapType("Zone", "domain", mapSliceType)
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	}
-	if string(def) != expectedMapSliceTypeDomain {
-		t.Errorf("expected %q got %q", expectedMapSliceTypeDomain, string(def))
+	for _, test := range tests {
+		r := bytes.NewReader(mapSliceType)
+		var buff bytes.Buffer
+		calvin := NewTransmogrifier("Zone", r, &buff)
+		calvin.IsMap = true
+		if test.structName != "" {
+			calvin.SetStructName(test.structName)
+		}
+		err := calvin.Gen()
+		if err != nil {
+			t.Errorf("unexpected error: %s", err)
+		}
+		if buff.String() != test.expected {
+			t.Errorf("expected %q got %q", test.expected, buff.String())
+		}
 	}
 }
 
@@ -245,45 +292,43 @@ func TestTransmogrify(t *testing.T) {
 		json       []byte
 		expected   string
 	}{
-		{"", "Basic", "", false, false, basic, fmt.Sprintf("package main\n\n%s", expectedFmtBasic)},
-		{"test", "Basic", "", false, false, basic, fmt.Sprintf("package test\n\n%s", expectedFmtBasic)},
-		{"", "Basic", "", false, true, basic, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
-		{"test", "Basic", "", false, true, basic, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtBasic)},
-		{"", "zone", "", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedFmtMapTypeStruct)},
-		{"test", "zone", "", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedFmtMapTypeStruct)},
-		{"", "zone", "", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeStruct)},
-		{"test", "zone", "", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeStruct)},
-		{"", "zone", "domain", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedFmtMapTypeDomain)},
-		{"test", "zone", "domain", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedFmtMapTypeDomain)},
-		{"", "zone", "domain", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
-		{"test", "zone", "domain", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedFmtMapTypeDomain)},
+		{"", "Basic", "", false, false, basic, fmt.Sprintf("package main\n\n%s", expectedBasic)},
+		{"test", "Basic", "", false, false, basic, fmt.Sprintf("package test\n\n%s", expectedBasic)},
+		{"", "Basic", "", false, true, basic, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
+		{"test", "Basic", "", false, true, basic, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedBasic)},
+		{"", "zone", "", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedMapTypeStruct)},
+		{"test", "zone", "", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedMapTypeStruct)},
+		{"", "zone", "", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedMapTypeStruct)},
+		{"test", "zone", "", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedMapTypeStruct)},
+		{"", "zone", "domain", true, false, mapType, fmt.Sprintf("package main\n\n%s", expectedMapTypeDomain)},
+		{"test", "zone", "domain", true, false, mapType, fmt.Sprintf("package test\n\n%s", expectedMapTypeDomain)},
+		{"", "zone", "domain", true, true, mapType, fmt.Sprintf("package main\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedMapTypeDomain)},
+		{"test", "zone", "domain", true, true, mapType, fmt.Sprintf("package test\n\nimport (\n\t\"encoding/json\"\n)\n\n%s", expectedMapTypeDomain)},
 	}
-	var b bytes.Buffer
 	for i, test := range tests {
+		var b bytes.Buffer
 		// create reader
 		r := bytes.NewReader(test.json)
-		// create Writer
-		w := bufio.NewWriter(&b)
 
-		calvin := NewTransmogrifier(test.name, r, w)
+		calvin := NewTransmogrifier(test.name, r, &b)
 		if test.pkg != "" {
 			calvin.SetPkg(test.pkg)
 		}
-		calvin.SetImportJSON(test.importJSON)
+		calvin.ImportJSON = test.importJSON
 		if test.isMap {
-			calvin.SetIsMap(test.isMap)
-			calvin.SetStructName(test.structName)
+			calvin.IsMap = test.isMap
+			if test.structName != "" {
+				calvin.SetStructName(test.structName)
+			}
 		}
 		err := calvin.Gen()
 		if err != nil {
 			t.Errorf("%d: unexpected error %q", i, err)
 			continue
 		}
-		w.Flush()
 		if b.String() != test.expected {
 			t.Errorf("%d: expected %q, got %q", i, test.expected, b.String())
 		}
-		b.Reset()
 	}
 }
 

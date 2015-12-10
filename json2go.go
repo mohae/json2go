@@ -42,10 +42,30 @@ type Transmogrifier struct {
 	jw         io.Writer
 	name       string
 	structName string
+	fieldName  string
 	pkg        string
-	importJSON bool
-	writeJSON  bool
-	isMap      bool
+	// ImportJSON is used to control whether or not an import statement
+	// for encoding/json should be generated.
+	ImportJSON bool
+	// WriteJSON is used to control whether or not the source JSON
+	// should be written.  The JSON will be written using MarshalIndent
+	// with '\t', tab, as the indent.  This only applies when the output
+	// destination is not stdout.
+	WriteJSON bool
+	// IsMap is used to determine whether the type should be a struct or
+	// either a map[string]T or map[string][]T type.  If false, the
+	// generated type will be a struct.  If true, the name of T should
+	// be set using SetStructName.  If it isn't set, T will be named
+	// Struct.
+	IsMap bool
+	// KeyAsField is used to determine if the key of the top-level map
+	// should be a struct field or the name of the struct.  This
+	// setting is mutually exclusive with IsMap and will be ignored if
+	// IsMap == true.
+	//
+	// If true, the name of the field should be set using SetFieldName,
+	// otherwise Field will be the name used for that field.
+	KeyAsField bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -53,15 +73,26 @@ type Transmogrifier struct {
 // Embedded struct names, if there are any embedded structs, are derived from
 // their associated key value.
 func NewTransmogrifier(name string, r io.Reader, w io.Writer) *Transmogrifier {
-	return &Transmogrifier{r: r, w: w, name: name, pkg: "main"}
+	if len(name) == 0 {
+		name = "Type"
+	} else {
+		name = strings.Title(name)
+	}
+	return &Transmogrifier{r: r, w: w, name: name, structName: "Struct", fieldName: "Field", pkg: "main"}
 }
 
-// SetStructName set's the name of the type derived from the interface{}
+// SetStructName sets the name of the type derived from the interface{}
 // portion of JSON that is of type map[string]interface{}.  This is used
 // when isMap is set to true.  If isMap is set to true but typeName is
 // not set, Struct will be used as the type name.
 func (t *Transmogrifier) SetStructName(s string) {
-	t.structName = s
+	t.structName = strings.Title(s)
+}
+
+// SetFieldName sets the name of the map key field in the generated struct
+// definition.  This only applies when KeyAsField is set to true.
+func (t *Transmogrifier) SetFieldName(s string) {
+	t.fieldName = strings.Title(s)
 }
 
 // SetPkg set's the package name to s.  The package name will be lowercased.
@@ -69,37 +100,10 @@ func (t *Transmogrifier) SetPkg(s string) {
 	t.pkg = strings.ToLower(s)
 }
 
-// SetImportJSON set's whether or not an import statement for encoding/json
-// should be added to the output.
-func (t *Transmogrifier) SetImportJSON(b bool) {
-	t.importJSON = b
-}
-
 // SetJSONWriter set's the writer to which the original json is written to,
 // This is most useful when getting the JSON from stdin.
 func (t *Transmogrifier) SetJSONWriter(w io.Writer) {
 	t.jw = w
-}
-
-// SetWriteJSON set's whether or not the source json used should be written
-// out to a file.
-func (t *Transmogrifier) SetWriteJSON(b bool) {
-	t.writeJSON = b
-}
-
-// SetIsMap set's whether or not the top level of the JSON is a map.  If
-// true, the structName should be set using the SetStructName method.  If
-// the structName is not set, the type name of the struct that the
-// interface{} part of the map[string]interface{} or map[string][]interface{}
-// contains will be Struct.
-//
-// json2struct's decoding of JSON map data supports:
-//    map[string]interface{}
-//    map[string][]interface{}
-//
-// If it is a map, the key is an actual key and not the name of the struct.
-func (t *Transmogrifier) SetIsMap(b bool) {
-	t.isMap = b
 }
 
 // Gen generates the struct definitions and outputs it to W.
@@ -122,7 +126,8 @@ func (t *Transmogrifier) Gen() error {
 			return ShortWriteError{n: n, written: m, operation: "JSON to buffer"}
 		}
 	}
-	if t.writeJSON {
+	if t.WriteJSON {
+		// TODO marshal indent
 		n, err := t.jw.Write(buff.Bytes())
 		if err != nil {
 			return err
@@ -131,18 +136,18 @@ func (t *Transmogrifier) Gen() error {
 			return ShortWriteError{n: buff.Len(), written: n, operation: "JSON to file"}
 		}
 	}
-	var res []byte
-	var err error
-	if t.isMap {
-		fmt.Println("genmaptype")
-		res, err = GenMapType(t.name, t.structName, buff.Bytes())
-	} else {
-		res, err = Gen(t.name, buff.Bytes())
-	}
+	var def interface{}
+	err := json.Unmarshal(buff.Bytes(), &def)
 	if err != nil {
 		return err
 	}
+	switch d := def.(type) {
+	case []interface{}:
+		def = d[0]
+	}
 	buff.Reset()
+	var wg sync.WaitGroup
+	// Write the package and import stuff to the buffer
 	n, err := buff.WriteString(fmt.Sprintf("package %s\n\n", t.pkg))
 	if err != nil {
 		return err
@@ -151,7 +156,7 @@ func (t *Transmogrifier) Gen() error {
 		return ShortWriteError{n: len(t.pkg), written: n, operation: "package name to buffer"}
 	}
 
-	if t.importJSON {
+	if t.ImportJSON {
 		n, err = buff.WriteString("import (\n\t\"encoding/json\"\n)\n\n")
 		if err != nil {
 			return err
@@ -160,12 +165,48 @@ func (t *Transmogrifier) Gen() error {
 			return ShortWriteError{n: 29, written: n, operation: "import to buffer"}
 		}
 	}
-	n, err = buff.Write(res)
-	if err != nil {
-		return err
+	// create the work queue and the result chan
+	q := queue.NewQ(2)
+	result := make(chan []byte)
+	// if IsMap, process as a map type
+	// and enqueue the first item
+	if t.IsMap {
+		// if it isn't a map, return an error as this only supports maps
+		if reflect.TypeOf(def).Kind() != reflect.Map {
+			return fmt.Errorf("GenMapType error: expected a map, got %s", reflect.TypeOf(def).Kind())
+		}
+		// extract the element to use as the basis point for defining the struct
+		//
+		m := reflect.ValueOf(def)
+		keys := m.MapKeys()
+		val := m.MapIndex(keys[0])
+		// it it contains a slice, get an element from the slice
+		if val.Elem().Kind() == reflect.Slice {
+			buff.WriteString(fmt.Sprintf("type %s map[string][]%s\n\n", t.name, t.structName))
+			val = val.Elem().Index(0)
+		} else {
+			buff.WriteString(fmt.Sprintf("type %s map[string]%s\n\n", t.name, t.structName))
+		}
+		q.Enqueue(newStructDef(t.structName, val.Elem()))
+		goto DEFINE
 	}
-	if n != len(res) {
-		return ShortWriteError{n: len(res), written: n, operation: "Go struct definition"}
+
+	// start the worker
+	// send initial work item
+	q.Enqueue(newStructDef(t.name, reflect.ValueOf(def)))
+
+DEFINE:
+	go func() {
+		defineStruct(q, result, &wg)
+	}()
+	// collect the results until the resCh is closed
+	for {
+		val, ok := <-result
+		if !ok {
+			break
+		}
+		// TODO handle error/short read
+		buff.Write(val)
 	}
 	fmtd, err := format.Source(buff.Bytes())
 	n, err = t.w.Write(fmtd)
@@ -243,51 +284,6 @@ func GenMapType(typeName, name string, data []byte) ([]byte, error) {
 	s := newStructDef(name, val.Elem())
 	q.Enqueue(s)
 	// start the worker &  send initial work item
-	go func() {
-		defineStruct(q, result, &wg)
-	}()
-	// collect the results until the resCh is closed
-	var i int
-	for {
-		i++
-		val, ok := <-result
-		if !ok {
-			break
-		}
-		// TODO handle error/short read
-		buff.Write(val)
-	}
-	return buff.Bytes(), nil
-}
-
-// Gen unmarshals JSON-encoded data and returns its struct definition(s) using
-// the name as the struct's name.  If the JSON includes other maps, the field
-// will be an embedded struct, with that struct's definition also being
-// generated.  If an error occurs during unmarshalling of the data, it will
-// be returned.  If an error occurs while writing to the buffer, that error
-// will be returned.
-func Gen(name string, data []byte) ([]byte, error) {
-	if len(name) == 0 {
-		return nil, fmt.Errorf("struct name required")
-	}
-	name = strings.Title(name)
-	// unmarshal the JSON-encoded data
-	var def interface{}
-	err := json.Unmarshal(data, &def)
-	if err != nil {
-		return nil, err
-	}
-	switch d := def.(type) {
-	case []interface{}:
-		def = d[0]
-	}
-	var buff bytes.Buffer
-	var wg sync.WaitGroup
-	q := queue.NewQ(2)
-	result := make(chan []byte)
-	// start the worker
-	// send initial work item
-	q.Enqueue(newStructDef(name, reflect.ValueOf(def)))
 	go func() {
 		defineStruct(q, result, &wg)
 	}()
