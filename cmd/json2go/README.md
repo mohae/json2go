@@ -31,7 +31,7 @@ The generated source can include the import statement for `encoding/json` by usi
     -writejson | -w | false | Write the source JSON to file; only valid when the output is a file.
     -pkg | -p | main | The name of the package.
     -addimport | -a | false | Add import statement for 'encoding/json'.
-    -maptype | -m false | Interpret the JSON as a map type instead of a struct type.
+    -maptype | -m | false | Interpret the JSON as a map type instead of a struct type.
     -structname | -s | Struct | The name of the struct; only used in conjunction with -maptype.
     -help | -h | false | Print the help text; 'help' is also valid.
 
@@ -244,7 +244,7 @@ This example results in a map[string]T
 
 ### Command:
 
-    json2struct -i hockey.json -o hockey.go -n team -s player
+    json2struct -i -m hockey.json -o hockey.go -n team -s player
 
 #### hockey.json
 
