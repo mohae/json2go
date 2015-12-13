@@ -17,7 +17,7 @@ Keys with underscores, `_`, are converted to MixedCase.  Keys starting with char
 
 By default, json2go will read the JSON from `stdin` and write the output to `stdout`.  Both a source file and destination file can be specified.  When the output destination is a file, the JSON used to generate the struct definition can also be written to a file by using either the `-writejson` or `-w` flag.  The filename will be the same as the Go output file except it will have the `.json` extension.
 
-The default package name for the generated Go source is `main`, this can be overridden using either the `-pkg` or `-p` flag.
+If the package name isn't specified using either the `-pkg` or `-p` flag, the package name will either be the parent directory of the ouput file, if an output file is specified, or the working directory.  
 
 The generated source can include the import statement for `encoding/json` by using either the `-addimport` or `-a` flag.
 
@@ -29,7 +29,7 @@ The generated source can include the import statement for `encoding/json` by usi
     -input | -i | stdin | The JSON input source.
     -output | -o | stdout | The generated Go source code output destination.
     -writejson | -w | false | Write the source JSON to file; only valid when the output is a file.
-    -pkg | -p | main | The name of the package.
+    -pkg | -p |   | The name of the package.
     -addimport | -a | false | Add import statement for 'encoding/json'.
     -maptype | -m | false | Interpret the JSON as a map type instead of a struct type.
     -structname | -s | Struct | The name of the struct; only used in conjunction with -maptype.
@@ -44,9 +44,9 @@ Compile:
     go build -o $GOPATH/bin/json2go
 
 Verify:
-  
+
     json2go -h  
-    
+
 
 ## Example 1
 
@@ -54,12 +54,12 @@ This example gets the JSON from a remote source and pipes it into `json2go`; gen
 
 ### Command
 
-    curl -s https://api.github.com/repos/mohae/json2go | json2go -o github.go -w -a -n repo
+    curl -s https://api.github.com/repos/mohae/json2go | json2go -o example/github.go -w -a -n repo
 
 #### Generated `github.go`
 
 ```
-package main
+package example
 
 import (
 	"encoding/json"
@@ -253,11 +253,11 @@ type Owner struct {
 ```
 ### Example 2:
 
-This example results in a map[string]T
+This example results in a map[string]T.  The working directory is `hockey`.
 
 ### Command:
 
-    json2struct -m -i hockey.json -o hockey.go -n team -s player
+    json2go -m -i hockey.json -o hockey.go -n team -s player
 
 #### hockey.json
 
@@ -281,7 +281,7 @@ This example results in a map[string]T
 #### Generated hockey.go  
 
 ```
-package main
+package hockey
 
 type Team map[string][]Player
 
@@ -294,17 +294,17 @@ type Player struct {
 
 ## Example 3:
 
-This example uses json of much greater complexity in a local file.
+This example uses json of much greater complexity in a local file.  The working directory is 'weather'.
 
 ### Command:
 
-    json2struct -i weather.json -o weather.go -n weather
+    json2go -i weather.json -o weather.go -n weather
 
 #### Generated weather.go
 The generated Go source code for `weather.json`:
 
 ```
-package main
+package weather
 
 type Weather struct {
 	HourlyForecasts []HourlyForecast `json:"hourly_forecast"`

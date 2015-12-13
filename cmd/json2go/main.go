@@ -5,7 +5,9 @@
 //    Type
 //
 // The result is Go source for the provided package name, with the type
-// definiton(s) for the JSON.
+// definiton(s) for the JSON.  If no package name is provided, the name
+// will either be the name of the output directory, if the output is a
+// file, or the working directory.
 //
 // If the JSON is an array of elements, e.g. []T or []map[string]T, the
 // first element will be used to generate the definitions.
@@ -33,7 +35,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/mohae/json2go"
@@ -58,8 +60,8 @@ func init() {
 	flag.StringVar(&input, "i", "stdin", "the short flag for -input")
 	flag.StringVar(&output, "output", "stdout", "path to the output file; if not specified stdout is used")
 	flag.StringVar(&output, "o", "stdout", "the short flag for -output")
-	flag.StringVar(&pkg, "pkg", "main", "the name of the package")
-	flag.StringVar(&pkg, "p", "main", "the short flag for -pkg")
+	flag.StringVar(&pkg, "pkg", "", "the name of the package")
+	flag.StringVar(&pkg, "p", "", "the short flag for -pkg")
 	flag.StringVar(&structName, "structname", "Struct", "the name of the struct; only used with -maptype")
 	flag.StringVar(&structName, "s", "Struct", "the short flag for -structname")
 	flag.BoolVar(&writeJSON, "writejson", false, "write the source JSON to file; if the output destination is stdout, this flag will be ignored")
@@ -117,13 +119,41 @@ func realMain() int {
 			return 1
 		}
 		defer out.Close()
+		// set the package name, if one isn't set
+		if len(pkg) == 0 {
+			// get the rooted path to the output
+			output, err := filepath.Abs(output)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, err)
+				return 1
+			}
+			base := filepath.Base(filepath.Dir(output))
+			if base != string(os.PathSeparator) && base != "." {
+				pkg = base
+			}
+		}
+		// write the source json if applicable
 		if writeJSON {
-			jsn, err = os.OpenFile(fmt.Sprintf("%s.json", strings.TrimSuffix(output, path.Ext(output))), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
+			jsn, err = os.OpenFile(fmt.Sprintf("%s.json", strings.TrimSuffix(output, filepath.Ext(output))), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				return 1
 			}
 			defer jsn.Close()
+		}
+	}
+	// there is a chance pkg hasn't been set; get the wd and set pkg to
+	// the parent element of cwd
+	if len(pkg) == 0 {
+		dir, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			return 1
+		}
+		// get the parent dir name
+		base := filepath.Base(dir)
+		if base != string(os.PathSeparator) && base != "." {
+			pkg = base
 		}
 	}
 	// create the transmogrifier and configure it.
@@ -185,7 +215,7 @@ flag              default   description
 -o  -output       stdout    The Go srouce code output destination.
 -w  -writejson    false     Write the source JSON to file; only valid
                             when the output is a file.
--p  -pkg          main      The name of the package.
+-p  -pkg                    The name of the package.
 -a  -addimport    false     Add import statement for 'encoding/json'.
 -m  -maptype      false     Interpret the JSON as a map type instead
                             of a struct type.
