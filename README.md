@@ -45,7 +45,7 @@ Source JSON:
 }
 ```
 
-Using Team as the parent type name and Player as the struct name:
+Using _Team_ as the parent type name and _Player_ as the struct name:
 
 ```
 package main
@@ -94,7 +94,7 @@ Source JSON from http://json.org/example.html:
 }
 ```
 
-Using 'Thing' as the parent type name results in:
+Using _Thing_ as the parent type name results in:
 
 ```
 package main
