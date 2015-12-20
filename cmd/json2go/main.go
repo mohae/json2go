@@ -26,7 +26,7 @@
 // source JSON can be written out to a file.  This file's name will be the
 // same as the Go source file's name, ending in '.json'.  This may be
 // useful when grabbing the JSON from a remote source and piping it into
-// json2struct via stdin.
+// json2go via stdin.
 //
 // Errors are written to stderr
 package main
@@ -70,7 +70,7 @@ func init() {
 	flag.BoolVar(&importJSON, "a", false, "the short flag for -addimport")
 	flag.BoolVar(&mapType, "maptype", false, "the provided json is a map type; not a struct type")
 	flag.BoolVar(&mapType, "m", false, "the short flag for -maptype")
-	flag.BoolVar(&help, "help", false, "json2struct help")
+	flag.BoolVar(&help, "help", false, "json2go help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
 }
 
@@ -94,7 +94,7 @@ func realMain() int {
 		return 0
 	}
 	if name == "" {
-		fmt.Fprintln(os.Stderr, "\nstruct2json error: name of struct must be provided using the -n or -name flag.\nUse the '-h', '-help', or 'help' flag for more information about json2struct flags.")
+		fmt.Fprintln(os.Stderr, "\nstruct2json error: name of struct must be provided using the -n or -name flag.\nUse the '-h', '-help', or 'help' flag for more information about json2go flags.")
 		return 1
 	}
 	var in, out, jsn *os.File
@@ -204,7 +204,7 @@ Minimal examples:
 
 or
 
-    $ json2struct -i example.json -o example.go -n example
+    $ json2go -i example.json -o example.go -n example
 
 Options:
 
