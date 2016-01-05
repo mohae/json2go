@@ -23,7 +23,7 @@ type ShortWriteError struct {
 }
 
 func (e ShortWriteError) Error() string {
-	return fmt.Sprintf("short write of %s: wrote %d bytes of %d", e.operation, e.n, e.written)
+	return fmt.Sprintf("%s: short write: wrote %d bytes of %d", e.operation, e.n, e.written)
 }
 
 // stringValues is a slice of reflect.Value holding *reflect.StringValue.
