@@ -43,6 +43,9 @@ type Transmogrifier struct {
 	name       string
 	structName string
 	pkg        string
+	// tagKeys are additional tag keys that should be included in the
+	// field's tag.  These tags are in addition to the `json` tag.
+	tagKeys []string
 	// ImportJSON is used to control whether or not an import statement
 	// for encoding/json should be generated.
 	ImportJSON bool
@@ -100,6 +103,18 @@ func (t *Transmogrifier) SetPkg(s string) {
 // This is most useful when getting the JSON from stdin.
 func (t *Transmogrifier) SetJSONWriter(w io.Writer) {
 	t.jw = w
+}
+
+// SetTagKeys set's the additional keys that should be added to struct tags.
+// This list should not include `json` as the `json` tag key is always
+// defined for each field.
+func (t *Transmogrifier) SetTagKeys(v []string) error {
+	t.tagKeys = make([]string, len(v))
+	n := copy(t.tagKeys, v)
+	if n != len(v) {
+		return ShortWriteError{n: len(v), written: n, operation: "SetTagKeys"}
+	}
+	return nil
 }
 
 // Gen generates the struct definitions and outputs it to W.
@@ -193,7 +208,7 @@ func (t *Transmogrifier) Gen() error {
 
 DEFINE:
 	go func() {
-		defineStruct(q, result, &wg)
+		defineStruct(q, t.tagKeys, result, &wg)
 	}()
 	// collect the results until the resCh is closed
 	for {
@@ -235,7 +250,7 @@ func (s *structDef) Bytes() []byte {
 // GenMapType unmarshals JSON-encoded data that is in the form of
 // map[string][]Type and returns both the type declaration and the struct
 // definition(s) for Type.
-func GenMapType(typeName, name string, data []byte) ([]byte, error) {
+func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, error) {
 	if len(typeName) == 0 {
 		return nil, fmt.Errorf("type name required")
 	}
@@ -281,7 +296,7 @@ func GenMapType(typeName, name string, data []byte) ([]byte, error) {
 	q.Enqueue(s)
 	// start the worker &  send initial work item
 	go func() {
-		defineStruct(q, result, &wg)
+		defineStruct(q, tagKeys, result, &wg)
 	}()
 	// collect the results until the resCh is closed
 	var i int
@@ -297,7 +312,7 @@ func GenMapType(typeName, name string, data []byte) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-func defineStruct(q *queue.Queue, result chan []byte, wg *sync.WaitGroup) {
+func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync.WaitGroup) {
 	for {
 		if q.IsEmpty() {
 			break
@@ -321,18 +336,34 @@ func defineStruct(q *queue.Queue, result chan []byte, wg *sync.WaitGroup) {
 				continue
 			}
 			// a slicemap is a signal that it is a []T which means pluralize
-			// the field name and generate the embedded sturct
+			// the field name and generate the embedded struct
 			if typ == "slicemap" {
 				tmp := newStructDef(k, val.Elem().Index(0).Elem())
 				q.Enqueue(tmp)
-				s.buff.WriteString(fmt.Sprintf("\t%ss []%s `json:%q`\n", k, k, tag))
+				s.buff.WriteString(fmt.Sprintf("\t%ss []%s ", k, k))
+				s.buff.WriteString(defineFieldTags(tag, tagKeys))
+				s.buff.WriteRune('\n')
 				continue
 			}
-			s.buff.WriteString(fmt.Sprintf("\t%s %s `json:%q`\n", k, typ, tag))
+			s.buff.WriteString(fmt.Sprintf("\t%s %s ", k, typ))
+			s.buff.WriteString(defineFieldTags(tag, tagKeys))
+			s.buff.WriteRune('\n')
 		}
 		result <- s.Bytes()
 	}
 	close(result)
+}
+
+// defineFieldTags defines the json field tag, along with any additional
+// tag key:"value" pairs using the received keys, if any.
+func defineFieldTags(value string, keys []string) string {
+	var tag string
+	tag = fmt.Sprintf("`json:%q", value)
+	for _, key := range keys {
+		tag = fmt.Sprintf("%s %s:%q", tag, key, value)
+	}
+	return fmt.Sprintf("%s`", tag)
+
 }
 
 func getValueKind(val reflect.Value) string {

@@ -282,6 +282,25 @@ func TestMapSliceType(t *testing.T) {
 	}
 }
 
+func TestDefineFieldTags(t *testing.T) {
+	tests := []struct {
+		keys []string
+		value string
+		expected string
+	}{
+		{nil, "field", "`json:\"field\"`"},
+		{[]string{}, "field", "`json:\"field\"`"},
+		{[]string{"xml"}, "field", "`json:\"field\" xml:\"field\"`"},
+		{[]string{"xml", "yaml", "db"}, "field", "`json:\"field\" xml:\"field\" yaml:\"field\" db:\"field\"`"},
+	}
+	for i, test := range tests {
+		tag := defineFieldTags(test.value, test.keys)
+		if tag != test.expected {
+			t.Errorf("%d: got %q, want %q", i, tag, test.expected)
+		}
+	}
+}
+
 func TestTransmogrify(t *testing.T) {
 	tests := []struct {
 		pkg        string
