@@ -41,6 +41,32 @@ import (
 	"github.com/mohae/json2go"
 )
 
+// handle flags that are string arrays
+type stringArr []string
+
+// needed to fulfill flag.Value
+func (s *stringArr) String() string {
+	var tmp string
+	for i, v := range *s {
+		tmp += v
+		if i > 0 && i < len(*s) {
+			tmp += " "
+		}
+	}
+	return tmp
+}
+
+// Add the flag value to the slice.
+func (s *stringArr) Set(v string) error {
+	*s = append(*s, v)
+	return nil
+}
+
+// Get the flag array as a slice.
+func (s stringArr) Get() []string {
+	return s
+}
+
 var (
 	name       string
 	pkg        string
@@ -51,6 +77,7 @@ var (
 	importJSON bool
 	mapType    bool
 	help       bool
+	tagKeys    stringArr
 )
 
 func init() {
@@ -72,6 +99,8 @@ func init() {
 	flag.BoolVar(&mapType, "m", false, "the short flag for -maptype")
 	flag.BoolVar(&help, "help", false, "json2struct help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
+	flag.Var(&tagKeys, "tagkeys", "", "additional struct tag keys; can be used more than once")
+	flag.Var(&tagKeys, "t", "", "the short flag for -tagkeys")
 }
 
 func main() {
@@ -168,6 +197,7 @@ func realMain() int {
 	}
 	t.MapType = mapType
 	t.SetStructName(structName)
+	t.SetTagKeys(tagKeys.Get())
 	// Generate the Go Types
 	err = t.Gen()
 	if err != nil {
@@ -222,6 +252,8 @@ flag              default   description
 -s  -structname   Struct    The name of the struct; only used in
                             conjunction with -maptype.
 -h  -help         false     Print the help text; 'help' is also valid.
+-t  -tagkey                 Additional key to be added to struct tags.
+                            For multiple keys, use one per key value.
 `
 	fmt.Println(helpText)
 }
