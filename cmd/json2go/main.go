@@ -99,8 +99,8 @@ func init() {
 	flag.BoolVar(&mapType, "m", false, "the short flag for -maptype")
 	flag.BoolVar(&help, "help", false, "json2struct help")
 	flag.BoolVar(&help, "h", false, "the short flag for -help")
-	flag.Var(&tagKeys, "tagkeys", "", "additional struct tag keys; can be used more than once")
-	flag.Var(&tagKeys, "t", "", "the short flag for -tagkeys")
+	flag.Var(&tagKeys, "tagkeys", "additional struct tag keys; can be used more than once")
+	flag.Var(&tagKeys, "t", "the short flag for -tagkeys")
 }
 
 func main() {
