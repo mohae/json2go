@@ -33,7 +33,7 @@ Struct tags with the key `json` are generated for all fields.  Additional struct
     -input | -i | stdin | The JSON input source.
     -output | -o | stdout | The generated Go source code output destination.
     -writejson | -w | false | Write the source JSON to file; only valid when the output is a file.
-    -pkg | -p |   | The name of the package.
+    -pkg | -p | parent directory of output file or woriing directory  | The name of the package.
     -addimport | -a | false | Add import statement for 'encoding/json'.
     -maptype | -m | false | Interpret the JSON as a map type instead of a struct type.
     -structname | -s | Struct | The name of the struct; only used in conjunction with -maptype.
