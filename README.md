@@ -1,8 +1,10 @@
 json2go
 =======
-[![Build Status](https://travis-ci.org/mohae/json2go.png)](https://travis-ci.org/mohae/json2go)
+[![GoDoc](https://godoc.org/github.com/mohae/json2go?status.svg)](https://godoc.org/github.com/mohae/json2go)[![Build Status](https://travis-ci.org/mohae/json2go.png)](https://travis-ci.org/mohae/json2go)
 
-json2go generates Go type definitions from JSON.  The type may be one of the following:
+Go library and command-line app for creating Go structs from JSON with struct tags: can specify type name, package name, and additional field tag keys.
+
+The type may be one of the following:
 
     * struct
     * map[string]T
@@ -20,7 +22,7 @@ Keys with underscores, `_`, are converted to MixedCase.  Keys starting with char
 
 If a field's value is null, the field's type will be `interface{}`, as that field's type is not determinable.
 
-The CLI is in the `cmd/json2go` subdirectory.  See that [README](https://github.com/mohae/json2go/tree/master/cmd/json2go) for more info and examples.
+There is also a [json2go CLI app](https://github.com/mohae/json2go/tree/master/cmd/json2go).  See that [README](https://github.com/mohae/json2go/tree/master/cmd/json2go) for more info and examples.
 
 ## Examples:
 
