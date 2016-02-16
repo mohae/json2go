@@ -2,7 +2,7 @@ json2go
 =======
 [![GoDoc](https://godoc.org/github.com/mohae/json2go?status.svg)](https://godoc.org/github.com/mohae/json2go)[![Build Status](https://travis-ci.org/mohae/json2go.png)](https://travis-ci.org/mohae/json2go)
 
-Go library and command-line app for creating Go structs from JSON with struct tags: can specify type name, package name, and additional field tag keys.
+Generate Go structs from JSON with struct tags: can specify type name, package name, and additional field tag keys with the CLI app.
 
 The type may be one of the following:
 
