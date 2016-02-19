@@ -284,8 +284,8 @@ func TestMapSliceType(t *testing.T) {
 
 func TestDefineFieldTags(t *testing.T) {
 	tests := []struct {
-		keys []string
-		value string
+		keys     []string
+		value    string
 		expected string
 	}{
 		{nil, "field", "`json:\"field\"`"},

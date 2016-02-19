@@ -501,6 +501,7 @@ var commonInitialisms = map[string]struct{}{
 	"RPC":   struct{}{},
 	"SLA":   struct{}{},
 	"SMTP":  struct{}{},
+	"SNI":   struct{}{},
 	"SSH":   struct{}{},
 	"TLS":   struct{}{},
 	"TTL":   struct{}{},
