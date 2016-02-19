@@ -18,7 +18,7 @@ The generated Go code will be part of package main unless another package name i
 
 The source JSON can also be written to a provided writer.
 
-Keys with underscores, `_`, are converted to MixedCase.  Keys starting with characters that are invalid for Go variable names have those characters discarded, unless they are a number, `0-9`, which are converted to their word equivalents. All fields are exported and the JSON field tag for the field is generated using the original JSON key value.
+Keys with underscores, `_`, are converted to MixedCase.  If any part of a key with underscores matches the list of common initialisms, that element is uppercased, e.g "person_id" becomes "personID".  Keys starting with characters that are invalid for Go variable names have those characters discarded, unless they are a number, `0-9`, which are converted to their word equivalents. All fields are exported and the JSON field tag for the field is generated using the original JSON key value.
 
 If a field's value is null, the field's type will be `interface{}`, as that field's type is not determinable.
 
