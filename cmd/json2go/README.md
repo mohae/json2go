@@ -44,9 +44,9 @@ Struct tags with the key `json` are generated for all fields.  Additional struct
 
 Compile:
 
-    go get github.com/mohae/json2go
-    cd github.com/mohae/json2go/cmd/json2go
-    go build -o $GOPATH/bin/json2go
+    go install github.com/mohae/json2g0/cmd/json2go
+
+The compiled application will be placed in your `$GOPATH/bin/`.
 
 Verify:
 
