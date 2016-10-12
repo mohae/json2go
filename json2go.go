@@ -380,6 +380,9 @@ func getValueKind(val reflect.Value) string {
 		}
 		return reflect.Float64.String()
 	case reflect.Slice:
+		if val.Elem().Len() == 0 {
+			return fmt.Sprint("[]interface{}")
+		}
 		v := val.Elem().Index(0).Elem()
 		switch v.Type().Kind() {
 		case reflect.Float64:
