@@ -220,6 +220,9 @@ DEFINE:
 		buff.Write(val)
 	}
 	fmtd, err := format.Source(buff.Bytes())
+	if err != nil {
+		return err
+	}
 	n, err = t.w.Write(fmtd)
 	if err != nil {
 		return err
