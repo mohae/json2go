@@ -120,26 +120,14 @@ func (t *Transmogrifier) SetTagKeys(v []string) error {
 // Gen generates the struct definitions and outputs it to W.
 func (t *Transmogrifier) Gen() error {
 	var buff bytes.Buffer
-	b := make([]byte, 1024)
-	for {
-		n, err := t.r.Read(b)
-		if err != nil && err != io.EOF {
-			return err
-		}
-		if n == 0 {
-			break
-		}
-		m, err := buff.Write(b[:n])
-		if err != nil {
-			return err
-		}
-		if n != m {
-			return ShortWriteError{n: n, written: m, operation: "JSON to buffer"}
-		}
+	_, err := buff.ReadFrom(t.r)
+	if err != nil {
+		return err
 	}
 	if t.WriteJSON {
 		// TODO marshal indent
-		n, err := t.jw.Write(buff.Bytes())
+		var n int
+		n, err = t.jw.Write(buff.Bytes())
 		if err != nil {
 			return err
 		}
@@ -148,7 +136,7 @@ func (t *Transmogrifier) Gen() error {
 		}
 	}
 	var def interface{}
-	err := json.Unmarshal(buff.Bytes(), &def)
+	err = json.Unmarshal(buff.Bytes(), &def)
 	if err != nil {
 		return err
 	}
