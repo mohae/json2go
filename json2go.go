@@ -125,7 +125,6 @@ func (t *Transmogrifier) Gen() error {
 		return err
 	}
 	if t.WriteJSON {
-		// TODO marshal indent
 		var n int
 		n, err = t.jw.Write(buff.Bytes())
 		if err != nil {
@@ -204,7 +203,7 @@ DEFINE:
 		if !ok {
 			break
 		}
-		// TODO handle error/short read
+		// TODO: returned values are being ignored; should n be checked here? err will always be nil
 		buff.Write(val)
 	}
 	fmtd, err := format.Source(buff.Bytes())

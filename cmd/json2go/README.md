@@ -58,7 +58,7 @@ This example gets the JSON from a remote source and pipes it into `json2go`; gen
 
 ### Command
 
-    curl -s https://api.github.com/repos/mohae/json2go | json2go -o example/github.go -w -a -n repo
+    curl -s https://api.github.com/repos/mohae/json2go | json2go -o github.go -w -a -n repo
 
 #### Generated `github.go`
 
