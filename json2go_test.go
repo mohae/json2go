@@ -429,3 +429,25 @@ func TestCleanFieldName(t *testing.T) {
 		}
 	}
 }
+
+// this is to validate https://github.com/mohae/json2go/pull/3
+func TestEmptySlice(t *testing.T) {
+	test := `{
+    "vals": [
+
+	]
+}`
+
+	expected := "package main\n\ntype Test struct {\n\tVals []interface{} `json:\"vals\"`\n}\n"
+
+	r := bytes.NewReader([]byte(test))
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("test", r, &buff)
+	err := calvin.Gen()
+	if err !=  nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if buff.String () != expected {
+		t.Errorf("got %q want %q", buff.String(), expected)
+	}
+}
