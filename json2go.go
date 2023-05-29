@@ -8,6 +8,7 @@ import (
 	"io"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode"
@@ -63,6 +64,10 @@ type Transmogrifier struct {
 	//
 	// If false, a struct definition will be generated for the type.
 	MapType bool
+	// StringTag is used to guess whether a string type field can
+	// be parsed as a Int/Float value. And a `,string`` tag will be
+	// added to the tail of the tag of that field.
+	StringTag bool
 }
 
 // NewTransmogrifier returns a new transmogrifier that reads from r and writes
@@ -135,7 +140,7 @@ func (t *Transmogrifier) Gen() error {
 		}
 	}
 	var def interface{}
-	err = json.Unmarshal(buff.Bytes(), &def)
+	err = unmarshalWithNumber(buff.Bytes(), &def)
 	if err != nil {
 		return err
 	}
@@ -195,7 +200,7 @@ func (t *Transmogrifier) Gen() error {
 
 DEFINE:
 	go func() {
-		defineStruct(q, t.tagKeys, result, &wg)
+		defineStruct(q, t.tagKeys, result, &wg, t.StringTag)
 	}()
 	// collect the results until the resCh is closed
 	for {
@@ -252,7 +257,7 @@ func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, e
 		name = strings.Title(name)
 	}
 	var def interface{}
-	err := json.Unmarshal(data, &def)
+	err := unmarshalWithNumber(data, &def)
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +291,7 @@ func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, e
 	q.Enqueue(s)
 	// start the worker &  send initial work item
 	go func() {
-		defineStruct(q, tagKeys, result, &wg)
+		defineStruct(q, tagKeys, result, &wg, false)
 	}()
 	// collect the results until the resCh is closed
 	var i int
@@ -302,7 +307,7 @@ func GenMapType(typeName, name string, tagKeys []string, data []byte) ([]byte, e
 	return buff.Bytes(), nil
 }
 
-func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync.WaitGroup) {
+func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync.WaitGroup, stringTag bool) {
 	for {
 		if q.IsEmpty() {
 			break
@@ -319,21 +324,26 @@ func defineStruct(q *queue.Queue, tagKeys []string, result chan []byte, wg *sync
 			val := s.val.MapIndex(key)
 			typ := getValueKind(val)
 			// maps are embedded structs
-			if typ == reflect.Map.String() {
+			switch typ {
+			case reflect.Map.String():
 				tmp := newStructDef(k, val.Elem())
 				q.Enqueue(tmp)
 				s.buff.WriteString(fmt.Sprintf("\t%s `json:%q`\n", k, tag))
 				continue
-			}
 			// a slicemap is a signal that it is a []T which means pluralize
 			// the field name and generate the embedded struct
-			if typ == "slicemap" {
+			case "slicemap":
 				tmp := newStructDef(k, val.Elem().Index(0).Elem())
 				q.Enqueue(tmp)
 				s.buff.WriteString(fmt.Sprintf("\t%ss []%s ", k, k))
 				s.buff.WriteString(defineFieldTags(tag, tagKeys))
 				s.buff.WriteRune('\n')
 				continue
+			case reflect.String.String():
+				if strTag := guessStringTag(val.Elem().String()); stringTag && strTag != "" {
+					tag += ",string"
+					typ = strTag
+				}
 			}
 			s.buff.WriteString(fmt.Sprintf("\t%s %s ", k, typ))
 			s.buff.WriteString(defineFieldTags(tag, tagKeys))
@@ -363,28 +373,32 @@ func getValueKind(val reflect.Value) string {
 		return "interface{}"
 	}
 	switch val.Elem().Type().Kind() {
-	case reflect.Float64:
-		v := val.Elem().Float()
-		if v == float64(int64(v)) {
-			return reflect.Int.String()
-		}
-		return reflect.Float64.String()
 	case reflect.Slice:
 		if val.Elem().Len() == 0 {
-			return fmt.Sprint("[]interface{}")
+			return "[]interface{}"
 		}
 		v := val.Elem().Index(0).Elem()
 		switch v.Type().Kind() {
-		case reflect.Float64:
-			vv := v.Float()
-			if vv == float64(int64(vv)) {
+		case reflect.String:
+			// use json.Number to determine accurately.
+			if v.Type().String() == "json.Number" {
+				if strings.Contains(v.String(), ".") {
+					return fmt.Sprintf("[]%s", reflect.Float64.String())
+				}
 				return fmt.Sprintf("[]%s", reflect.Int.String())
 			}
-			return fmt.Sprintf("[]%s", reflect.Float64.String())
 		case reflect.Map:
 			return "slicemap"
 		}
 		return fmt.Sprintf("[]%s", v.Type().Kind().String())
+	case reflect.String:
+		// use json.Number to determine accurately.
+		if val.Elem().Type().String() == "json.Number" {
+			if strings.Contains(val.Elem().String(), ".") {
+				return reflect.Float64.String()
+			}
+			return reflect.Int.String()
+		}
 	}
 	return val.Elem().Type().Kind().String()
 }
@@ -514,4 +528,20 @@ func toUpperInitialism(s string) string {
 		return tmp
 	}
 	return s
+}
+
+func unmarshalWithNumber(data []byte, v interface{}) error {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	return decoder.Decode(v)
+}
+
+func guessStringTag(s string) (typeName string) {
+	if _, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return reflect.Int.String()
+	}
+	if _, err := strconv.ParseFloat(s, 64); err == nil {
+		return reflect.Float64.String()
+	}
+	return
 }
