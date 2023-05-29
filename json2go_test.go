@@ -444,10 +444,28 @@ func TestEmptySlice(t *testing.T) {
 	var buff bytes.Buffer
 	calvin := NewTransmogrifier("test", r, &buff)
 	err := calvin.Gen()
-	if err !=  nil {
+	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	}
-	if buff.String () != expected {
+	if buff.String() != expected {
+		t.Errorf("got %q want %q", buff.String(), expected)
+	}
+}
+
+func TestStringTag(t *testing.T) {
+	test := `{"aaa":"123","bbb":"123.123","test":9223372036854775807,"test1":"123,123"}`
+
+	expected := "package main\n\ntype Test struct {\n\tAaa   int     `json:\"aaa,string\"`\n\tBbb   float64 `json:\"bbb,string\"`\n\tTest  int     `json:\"test\"`\n\tTest1 string  `json:\"test1\"`\n}\n"
+
+	r := bytes.NewReader([]byte(test))
+	var buff bytes.Buffer
+	calvin := NewTransmogrifier("test", r, &buff)
+	calvin.StringTag = true
+	err := calvin.Gen()
+	if err != nil {
+		t.Errorf("unexpected error: %s", err)
+	}
+	if buff.String() != expected {
 		t.Errorf("got %q want %q", buff.String(), expected)
 	}
 }
